@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.UserLegalConsent" table="user_legal_consent">
+		<meta attribute="class-description">
+			This class contains the User Legal Consent detail.
+		</meta>
+		<id name="acceptedId" type="int" column="ACCEPTED_ID">						
+		</id>		
+		<property name="acceptedBy" column="ACCEPTED_BY" type="string" />
+		<property name="lcId" column="LC_ID" type="int" />
+		<property name="ntDomain" column="USER_NTDOMAIN" type="string" />
+		<property name="sceRole" column="USER_SCE_ROLE" type="string" />
+		<property name="lcAcceptanceDate" column="LC_ACCEPTANCE_DATE" type="date" />		
+	</class>
+</hibernate-mapping>

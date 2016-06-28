@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	
+	<class name="com.pfizer.sce.beans.GuestTrainerEvent" table="GUEST_TRAINER_EVENT">
+		<meta attribute="class-description">
+		This class contains employee detail.
+		</meta>
+		<id name="mapId" type="string" column="MAP_ID" />
+		<property name="repEmail" column="REP_EMAIL" type="string"
+			unique="false"/>
+		<property name="eventName" column="EVENT_NAME" type="string" 
+			unique="false"/>
+		<property name="repIsAccepted" column="REP_ISACCEPTED" type="string"
+			unique="false"/>
+		<property name="repEmailIsSent" column="REP_EMAIL_ISSENT" type="string"
+			unique="false"/>
+		
+	</class>
+</hibernate-mapping>

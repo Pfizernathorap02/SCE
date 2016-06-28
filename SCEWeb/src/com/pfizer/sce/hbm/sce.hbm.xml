@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.SCE" table="sce_fft">
+		<meta attribute="class-description">
+			This class contains the SCE_FFT detail.
+		</meta>
+		<id name="id" type="java.lang.Integer" column="SCE_ID">						
+		</id>
+		<property name="eventId" column="EVENT_ID" type="java.lang.Integer" />		
+		<property name="emplId" column="EMPLID" type="java.lang.String" />
+		<property name="product" column="PRODUCT_NAME" type="java.lang.String" />
+		<property name="productCode" column="PRODUCT_CD" type="java.lang.String" />
+		<property name="templateVersionId" column="TEMPLATE_VERSION_ID" type="java.lang.Integer" />
+		
+		<property name="precallRating" column="PRECALL_RATING" type="java.lang.String" />
+		<property name="precallComments" column="PRECALL_COMMENTS" type="java.lang.String" />		
+		
+		<property name="postcallRating" column="POSTCALL_RATING" type="java.lang.String" />	
+		<property name="postcallComments" column="POSTCALL_COMMENTS" type="java.lang.String" />	
+		
+		<property name="comments" column="COMMENTS" type="java.lang.String" />	
+		<property name="hlcCompliant" column="HLC_COMPLIANT" type="java.lang.String" />	
+		
+		<property name="reviewed" column="REVIEWED" type="java.lang.String" />	
+		<property name="overallRating" column="OVERALL_RATING" type="java.lang.String" />	
+		<property name="overallComments" column="OVERALL_COMMENTS" type="java.lang.String" />
+		
+		
+		<property name="submittedDate" column="SUBMITTED_DATE" type="java.util.Date" />
+		
+		<property name="uploadedDate" column="UPLOAD_DATE" type="java.util.Date" />
+		
+		<property name="uploadedForm" column="UPLOADED_FORM" type="java.sql.Blob" />
+		<property name="submittedByEmplId" column="SUBMITTED_BY_EMPLID" type="java.lang.String" />
+		<property name="classroom" column="CLASSROOM" type="java.lang.String" />
+		<property name="tableName" column="TABLE_NAME" type="java.lang.String" />
+		
+		
+		<property name="course" column="COURSE_DESCRIPTION" type="java.lang.String" />		
+		<property name="overallScore" column="overall_score" type="java.lang.Double" />
+		
+		<property name="status" column="STATUS" type="java.lang.String" />
+		<property name="preparedByEmplId" column="prepared_by_emplid" type="java.lang.String" />
+		
+		<property name="precallNA" column="precall_na" type="java.lang.String" />
+		<property name="postcallNA" column="postcall_na" type="java.lang.String" />					
+	</class>
+</hibernate-mapping>

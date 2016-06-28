@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.EvaluationFormScore" table="EVALUATION_FORM_SCORE">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="id" type="java.lang.Integer" column="ID">
+		</id>
+		<property name="TEMPLATE_VERSION_ID" column="templateVersionId" type="java.lang.Integer" />
+
+		<property name="SCORE_LEGEND" column="scoreValue" type="java.lang.String" />
+		<property name="NOTIFICATION_FLAG" column="notificationFG" type="java.lang.String" />
+		<property name="LMS_FLAG" column="lmsFlag" type="java.lang.String" />		
+	</class>
+</hibernate-mapping>

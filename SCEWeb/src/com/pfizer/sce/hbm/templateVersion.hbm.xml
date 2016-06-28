@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.TemplateVersion" table="TEMPLATE_VERSION">
+		<meta attribute="class-description">
+			This class contains the template version detail.
+		</meta>
+		<id name="id" type="int" column="TEMPLATE_VERSION_ID">
+		</id>
+		<property name="templateId" column="TEMPLATE_ID" type="int" />
+		<property name="version" column="VERSION" type="int" />
+		<property name="formTitle" column="FORM_TITLE" type="string" />
+		<property name="createDate" column="CREATE_DATE" type="java.util.Date" />
+		<property name="createdBy" column="CREATED_BY" type="int" />
+		<property name="modifiedDate" column="MODIFIED_DATE" type="java.util.Date" />
+		<property name="modifiedBy" column="MODIFIED_BY" type="int" />
+		<property name="precallComments" column="PRECALL_COMMENTS"
+			type="string" />
+		<property name="postcallComments" column="POSTCALL_COMMENTS"
+			type="string" />
+		<property name="overallComments" column="OVERALL_COMMENTS"
+			type="string" />
+		<property name="hlcCritical" column="HLC_CRITICAL" type="string" />
+		<property name="autoCreditValue" column="AUTOCREDIT_VALUE"
+			type="string" />
+		<property name="publishFlag" column="PUBLISH_FLAG" type="string" />
+		<property name="scoringSystemIdentifier" column="SCORING_SYSTEM_IDENTIFIER"
+			type="string" />
+		<property name="legalSectionFlag" column="LEGAL_SECTION_FLAG"
+			type="string" />
+		<property name="hlcCriticalValue" column="HLC_CRITICAL_VALUE"
+			type="string" />
+		<property name="conflictOverallScore" column="CONFLICT_OVERALL_SCORE"
+			type="string" />
+		<property name="comments" column="COMMENTS" type="string" />
+		<property name="preCallFlag" column="PRECALL_FLAG" type="string" />
+		<property name="postCallFlag" column="POSTCALL_FLAG" type="string" />
+		<property name="preCallLabel" column="PRECALL_LABEL" type="string" />
+		<property name="postCallLabel" column="POSTCALL_LABEL" type="string" />
+		<property name="templatetitle" column="TAMPLATE_TITLE" type="string" />
+		<property name="callImageDisplay" column="CALLIMAGE_FLAG" type="boolean" />
+		<property name="overallEvaluationLable" column="OVERALL_EVALUATION_LABLE" type="string" />
+		
+		<property name="preCallImage" column="pre_call_image" type="string" />
+		<property name="postCallImage" column="Post_call_image" type="string" />
+		<property name="callLabelDisplay" column="Call_label_display" type="string" />
+		<property name="callLabelValue" column="Call_label_value" type="string" />
+
+
+
+
+	</class>
+</hibernate-mapping>

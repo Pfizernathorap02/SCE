@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.CourseEvalTemplateMapping" table="lms_course_mapping">
+		<meta attribute="class-description">
+			This class contains the evaluation form score detail.
+		</meta>
+		<id name="mappingId" column="COURSE_MAPPING_ID" type="int" />
+		
+		<property name="name" column="EVALUATION_FORM_NAME" type="string" />
+		
+		<property name="version" column="EVALUATION_FORM_VERSION" type="int" />
+		
+		<property name="courseName" column="LMS_COURSE_NAME" type="string" />
+		
+		<property name="courseCode" column="LMS_COURSE_CODE" type="string" />
+		
+		<property name="activityPk" column="ACTIVITY_PK" type="int" />
+		
+		<property name="createdDate" column="CREATED_DATE" type="string" />
+		
+		<property name="evalTemplateId" column="EVALUATION_TEMPLATE_ID" type="int" />
+		
+
+	</class>
+</hibernate-mapping>

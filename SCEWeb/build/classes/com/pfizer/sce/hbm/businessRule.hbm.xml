@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.BusinessRule" table="business_rules">
+		<meta attribute="class-description">
+			This class contains the business rule detail.
+		</meta>
+		<id name="businessRuleId" column="business_rule_id" type="int" />
+		<property name="templateVersionId" column="template_version_id"
+			type="int" />
+		<property name="displayOrder" column="display_order" type="int" />
+		<property name="criticalQuestions" column="critical_questions"
+			type="int" />
+		<property name="score" column="score" type="string" />
+		<property name="overallScore" column="overall_score" type="string" />
+
+	</class>
+</hibernate-mapping>

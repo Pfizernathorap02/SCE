@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.Learner" table="LEARNERS_COURSECOMPLETED">
+		<meta attribute="class-description" >
+			This class contains the descriptor detail.
+		</meta>
+		<id name="lId" column="L_ID" type="string" />
+		
+		<property name="empNo" column="EMPNO" type="string" />
+		
+		<property name="firstName" column="DESCRIPTION" type="string" />
+		
+		<property name="lastName" column="QUESTION_ID" type="string" />
+		
+		<property name="emailAddress" column="DESCRIPTION" type="string" />
+		
+		<property name="location" column="QUESTION_ID" type="string" />
+		
+		<property name="course" column="DESCRIPTION" type="string" />
+		
+		<property name="rdate" column="QUESTION_ID" type="date" />
+		
+		<property name="isEmailSent" column="DESCRIPTION" type="string" />
+		
+		<property name="isCourseComplete" column="QUESTION_ID" type="string" />
+		
+		<property name="courseStartDate" column="DESCRIPTION" type="date" />
+		
+		<property name="courseEndDate" column="QUESTION_ID" type="date" />
+		
+		<property name="courseCode" column="DESCRIPTION" type="string" />
+		
+		<property name="eventName" column="QUESTION_ID" type="string" />
+		
+		
+		
+		
+
+    
+</class>
+</hibernate-mapping>

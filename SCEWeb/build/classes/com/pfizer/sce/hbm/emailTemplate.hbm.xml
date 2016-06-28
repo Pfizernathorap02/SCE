@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.EmailTemplate" table="email_template">
+		<meta attribute="class-description">
+			This class contains the uploaded_blank_form
+			detail.
+		</meta>
+		<id name="emailTemplateId" column="email_template_id" type="int" />
+		<property name="emailTemplateVersion" column="email_template_version"
+			type="string" />
+		<property name="evaluationTemplateVersionId" column="template_version_id"
+			type="int" />
+		<property name="scoringSystemIdentifier" column="scoring_system_identifier"
+			type="string" />
+		<property name="publishFlag" column="publish_flag" type="string" />
+
+		<property name="evaluationTemplateName" column="evaluation_template_name"
+			type="string" />
+		<property name="overallScore" column="overall_score" type="string" />
+		
+		<property name="emailCc" column="EMAIL_CC" type="string" />
+		
+		<property name="emailBCc" column="EMAIL_BCC" type="string" />
+		
+		<property name="emailSubject" column="EMAIL_SUBJECT" type="string" />
+		
+		<property name="emailBody" column="EMAIL_BODY" type="string" />
+		
+		
+
+
+
+
+	</class>
+</hibernate-mapping>

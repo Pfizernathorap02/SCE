@@ -1,0 +1,93 @@
+
+form {padding:0; margin:0;
+	}
+
+
+label {
+	font-weight: bold;
+	}
+
+fieldset {
+	margin:0;
+	padding:0;
+	border: 1px solid #FFF;
+	}
+fieldset br {
+	display: none;
+	}
+
+legend {
+margin:0;
+	font-weight: bold;
+	font-size:110%;
+	color: #537698;
+	padding: .3em 0;
+	border-bottom: 1px solid #537698;
+	width:100%;
+	}
+
+fieldset div {
+	margin-top:5px;
+	
+	}
+fieldset div span {
+	display: none;
+	}
+
+label, fieldset div.cr p {
+	display: block;
+	width: 10em;
+	text-align: left;
+	
+	margin-left:0px;
+	margin-bottom: 3px;
+	}
+
+fieldset div.cr label {
+	text-align: left;
+	margin-left: 13em;
+	width: auto;
+	float: none;
+	}
+.checkbox {width:auto; text-align:left;}
+.mandat {
+	color: #2C6789;
+	}
+
+.removed {
+	display: none !important;
+	}
+.error {
+	font-wieght: bold;
+	color: red;
+	}
+
+
+input {width: 100px;}
+select {
+	width: 150px; 
+	display: block; 
+	margin: 10px 0; 
+	font-size: .9em; 
+	font-family: "Lucida Grande", "Trebuchet MS", Arial;
+	color: #555;
+	}
+
+.radio_btn {
+    width: auto;
+    margin-right: 5px;
+    font-weight:bold;
+}
+ 
+textarea {width: 250px;}
+
+#p_search label {
+	font-weight: bold;
+	float: left;
+	width: 15em;
+	}
+#p_search input {float:left; margin-bottom: 10px;}
+
+#p_search fieldset div {
+clear:both;
+}

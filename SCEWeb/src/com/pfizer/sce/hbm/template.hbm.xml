@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.Template" table="template">
+		<meta attribute="class-description">
+			This class contains the template detail.
+		</meta>
+		<id name="id" type="int" column="TEMPLATE_ID">
+		</id>
+
+		<property name="name" column="NAME" type="string" />
+		<property name="lastModifiedDate" column="LAST_MODIFIED_DATE" type="java.util.Date" />
+		<property name="currentVersion" column="CURRENT_VERSION" type="int" />
+
+	</class>
+</hibernate-mapping>

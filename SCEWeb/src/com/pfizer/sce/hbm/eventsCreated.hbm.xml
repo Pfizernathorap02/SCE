@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.EventsCreated" table="V_Event">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="eventId" type="int" column="event_id">
+		</id>
+		<property name="eventName" column="event_name" type="string" />
+		<property name="eventDescription" column="event_description"
+			type="string" />
+		<property name="eventStartDate" column="event_start_date"
+			type="string" />
+		<property name="eventEndDate" column="event_end_date" type="string" />
+		<property name="product" column="PRODUCT" type="string" />
+		<property name="eventStatus" column="event_status" type="string" />
+		<property name="evalDuration" column="eval_duration" type="java.lang.Integer" />
+		<property name="numberOfEval" column="number_of_eval" type="java.lang.Integer" />
+		<property name="typeOfEval" column="type_of_eval" type="string" />
+		<property name="numberOfLearners" column="number_of_learners"
+			type="java.lang.Integer" />
+
+
+	</class>
+</hibernate-mapping>

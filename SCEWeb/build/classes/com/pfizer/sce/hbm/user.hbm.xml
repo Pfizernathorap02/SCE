@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.User" table="users">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="id" type="int" column="USER_ID">
+		   <generator class="sequence" >
+		   		<param name="sequence">SQ_USERS</param>                		   	
+		   </generator>	
+		</id>
+		<property name="firstName" column="FIRST_NAME" type="string" />
+		<property name="lastName" column="LAST_NAME" type="string" />		
+		<property name="email" column="EMAIL" type="string" />
+		<property name="ntid" column="NTID" type="string" />
+		<property name="emplId" column="EMPLID" type="string" />		
+		<property name="ntdomain" column="NTDOMAIN" type="string" />
+		<property name="status" column="STATUS" type="string" />
+		<property name="userGroup" column="USERGROUP" type="string" />
+		<property name="createDate" column="CREATE_DATE" type="date" />
+		<property name="lastModifiedDate" column="LAST_MODIFIED_DATE" type="date" />		
+		<property name="expirationDate" column="EXPIRATION_DATE" type="string"  />	
+				
+	</class>
+</hibernate-mapping>

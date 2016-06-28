@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.EventCourseProductMapping"
+		table="V_Event">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="mapping_id" type="int" column="mapping_id">
+		</id>
+		<property name="event_Name" column="event_name" type="string" />
+		<property name="product_Name" column="product_name"
+			type="string" />
+		<property name="course_Code" column="course_code" type="string" />
+		<property name="active_Flag" column="active_flag" type="string" />
+
+	</class>
+</hibernate-mapping>

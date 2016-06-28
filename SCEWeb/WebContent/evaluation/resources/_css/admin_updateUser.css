@@ -1,0 +1,63 @@
+/* Admin */
+/*987006*/
+
+/*
+.admin table 
+{
+	width: 100%;
+	table-layout: fixed;    
+}*/
+#email_length
+{
+	width: 220px;
+}
+
+#uploadGTProduct {
+    left: 160px;
+    position: absolute;
+    top: 218px;
+}
+/*987006*/
+.add_user {
+	text-align: right;
+	width: 100%;
+	padding-bottom: 5px;
+	}
+	
+	
+/* Admin Form Elements */
+.admin label {
+	font-weight: bold;
+	float: left;
+	width: 15em;
+	}
+.admin input {float:left; margin-bottom: 10px;}
+
+.admin fieldset div {
+clear:both;
+}
+.admin input.form_title { width: 300px;}
+.admin input.question_number { width: 30px;}
+.admin input.q_title { width: 200px;}
+.admin input.question { width: 450px;}
+.admin input.descriptor { width: 450px;}
+
+.add_buttons {
+	margin-top: 10px;
+	margin-left: 15em;
+	clear:both;
+		}
+		
+#p_add_user form {
+	width: 400px;
+	}
+	
+select {
+	width: 150px; 
+	display: inline; 
+	margin: 0px 0; 
+	padding:0;
+	font-size: .9em; 
+	font-family: "Lucida Grande", "Trebuchet MS", Arial;
+	color: #555;
+	}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.UploadBlankForm" table="uploaded_blank_form">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="uploadedBlankFileId" type="int" column="UPLOADED_BLANK_FILE_ID">
+		</id>
+		<property name="templateVersionId" column="TEMPLATE_VERSION_ID" type="java.lang.Integer" />
+
+		<property name="blobData" column="UPLOADED_BLANK_FILE" type="java.sql.Blob" />		
+	</class>
+</hibernate-mapping>

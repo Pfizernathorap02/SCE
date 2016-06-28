@@ -1,0 +1,93 @@
+
+/* top nav admin */
+#top_nav {
+	margin: 0 auto;
+	width: 340px;
+	list-style: none;
+	text-align: center;
+	background: #1f61a9;
+	padding: 5px;
+	color: #fff;
+	position: absolute;
+	top:0;
+	right:0;
+	
+}
+
+#top_nav ul {
+
+}
+
+#top_nav li {
+	display: inline;
+	padding: 0 8px;
+	border-right: solid 1px #fff;
+
+}
+
+#top_nav a {
+	color: #fff;
+}
+
+
+
+#top_nav a:hover {color: #ffcc33;}
+#top_nav .last {border: 0;}
+
+
+.evaluate #top_nav li#nav_evaluate a,
+.admin #top_nav li#nav_admin a,
+.search #top_nav li#nav_search a,
+#faq #top_nav li#nav_faq a,
+#p-contact #top_nav li#nav_contact a
+{
+	color: #ffcc33;
+}
+	
+
+
+/* top nav user */
+#top_nav1 {
+	margin: 0 auto;
+	width: 340px;
+	list-style: none;
+	text-align: center;
+	background: #1f61a9;
+	padding: 5px;
+	color: #fff;
+	position: absolute;
+	top:0;
+	right:0;
+	
+}
+
+#top_nav1 ul {
+
+}
+
+#top_nav1 li {
+	display: inline;
+	padding: 0 8px;
+	border-right: solid 1px #fff;
+
+}
+
+#top_nav1 a {
+	color: #fff;
+}
+
+
+
+#top_nav1 a:hover {color: #ffcc33;}
+#top_nav1 .last {border: 0;}
+
+
+.evaluate #top_nav1 li#nav_evaluate a,
+.admin #top_nav1 li#nav_admin a,
+.search #top_nav1 li#nav_search a,
+#faq #top_nav1 li#nav_faq a,
+#p-contact #top_nav1 li#nav_contact a
+{
+	color: #ffcc33;
+}
+	

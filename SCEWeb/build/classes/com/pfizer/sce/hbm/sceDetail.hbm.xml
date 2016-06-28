@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+	<class name="com.pfizer.sce.beans.SCEDetail" table="SCE_Detail">
+		<meta attribute="class-description">
+			This class contains the employee detail.
+		</meta>
+		<id name="id" type="java.lang.Integer" column="SCE_DETAIL_ID">
+			<generator class="sequence">
+				<param name="sequence">SQ_SCE_DETAIL</param>
+			</generator>
+		</id>
+		<property name="sceId" column="SCE_ID" type="java.lang.Integer" />
+
+		<property name="questionScore3" column="QUESTION_SCORE3" type="java.lang.Integer" />
+		<property name="questionScore2" column="QUESTION_SCORE2" type="string" />
+		<property name="questionScore1" column="QUESTION_SCORE1" type="string" />
+		<property name="questionRating" column="QUESTION_RATING" type="string" />
+		
+		<property name="questionId" column="QUESTION_ID" type="java.lang.Integer" />		
+		<property name="questionFg" column="QUESTION_FG"	type="string" />
+		<property name="questionComments" column="QUESTION_COMMENTS" type="string" />
+		
+	</class>
+</hibernate-mapping>

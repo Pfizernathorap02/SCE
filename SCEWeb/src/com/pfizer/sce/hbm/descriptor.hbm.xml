@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.Descriptor" table="DESCRIPTOR">
+		<meta attribute="class-description" >
+			This class contains the descriptor detail.
+		</meta>
+		<id name="id" column="DESCRIPTOR_ID" type="int" />
+		<property name="questionId" column="QUESTION_ID" type="int" />
+		<property name="description" column="DESCRIPTION" type="string" />
+</class>
+</hibernate-mapping>

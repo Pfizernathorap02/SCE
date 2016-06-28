@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN" "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+
+		<property name="hibernate.connection.driver_class">oracle.jdbc.OracleDriver</property>
+
+
+		<property name="hibernate.connection.datasource">java:jboss/SCE</property>
+		<!-- <property name="hibernate.session_factory_name">HibernateSessionFactory</property> -->
+
+         <!-- <property name="hibernate.connection.url">jdbc:oracle:thin:@170.116.141.106:1522:SDCMT001</property> 
+			<property name="hibernate.connection.username">sales_call</property> <property 
+			name="hibernate.connection.password">pfizer_12</property> -->
+
+		<!-- <property name="hibernate.connection.url">jdbc:oracle:thin:@170.116.168.222:1569:SDCMD001</property> 
+			<property name="hibernate.connection.username">sales_call</property> <property 
+			name="hibernate.connection.password">Pfizer#00</property> -->
+
+		<!-- <property name="hibernate.connection.url">jdbc:oracle:thin:@170.116.224.178:1556:ENID80</property> 
+			<property name="hibernate.connection.username">sales_call</property> <property 
+			name="hibernate.connection.password">pfizer#01</property> -->
+
+		<property name="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</property>
+		<property name="hibernate.show_sql">false</property>
+		<property name="hibernate.session_factory_name">HibernateSessionFactory</property>
+		 <property name="hibernate.jdbc.batch_size">50</property>
+
+		<mapping resource="com/pfizer/sce/hbm/legalConsentTemplate.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/event.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/user.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/guestTrainerEvent.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/trainerLearnerMapping.hbm.xml" />
+
+		<mapping resource="com/pfizer/sce/hbm/template.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/eventCourse.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/templateVersion.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/businessRule.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/legalQuestion.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/evaluationFormScore.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/descriptor.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/question.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/emailTemplate.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/uploadBlankForm.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/eventsCreated.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/EventCourseProductMapping.hbm.xml" />
+
+		<mapping resource="com/pfizer/sce/hbm/sceDetail.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/sce.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/userLegalConsentTemplate.hbm.xml" />
+		<mapping resource="com/pfizer/sce/hbm/dateTimeSlots.hbm.xml"/>
+	</session-factory>
+
+</hibernate-configuration>

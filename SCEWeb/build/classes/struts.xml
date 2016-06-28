@@ -1,0 +1,1504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="false" />
+	<constant name="struts.ui.theme" value="simple" />
+
+	<package name="default" namespace="/" extends="struts-default">
+
+
+		<default-action-ref name="index" />
+
+		<global-results>
+			<result name="error">/error.jsp</result>
+		</global-results>
+
+		<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception"
+				result="error" />
+		</global-exception-mappings>
+
+<!--  @GADALP Struts Action Start-->
+
+
+
+	<action name="searchHome" method="gotoSearchForAttendee"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/searchForAttendee.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/errorPage.jsp
+		</result>
+	</action>
+	
+		<action name="searchAtd" method="searchAttendee"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/searchForAttendeeResults.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+
+	<action name="evaluationResults" method="gotoEvaluationResults"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluationResults.jsp
+		</result>
+		<result name="failure">
+			/errorPage.jsp
+		</result>
+
+	</action>
+	
+
+        
+        
+	<action name="admin" method="gotoAdmin" 
+	class="com.pfizer.sce.Action.NavBarAction">
+
+		<result name="success">
+			/evaluation/admin.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		
+	</action>
+	
+
+
+	<action name="printblankform" method="printBlankForm"
+		class="com.pfizer.sce.Action.NavBarAction">
+		<result name="success">
+			/evaluation/PrintBlankForm.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="downloadBlankForm" method="downloadBlankForm"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/showBlankFormPDF.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="search" method="begin"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/searchForAttendee.jsp
+		</result>
+		<result name="failureOther">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="search2" method="search2"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/searchForAttendeeResults.jsp
+		</result>
+		<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+
+	<action name="searchAgain" method="searchAgain"
+		class="com.pfizer.sce.Action.SearchAttendeeAction">
+		<result name="success">
+			/evaluation/searchForAttendee.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+
+<!-- 	<action name="user" method="executeMethod"
+		class="com.pfizer.sce.Action.LoginTestAction">
+		<result name="success">
+			/evaluation/success.jsp
+		</result>
+	</action> -->
+
+	<action name="acceptLegalConsent" method="acceptLegalConsent"
+		class="com.pfizer.sce.Action.LegalConsentAction">
+		<result name="success">
+			/evaluation/searchForAttendee.jsp
+		</result>
+		<result name="forwardURL" type="redirect">
+        ${pageUrl}
+        </result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+
+	<action name="gotoUserAdmin" method="gotoUserAdmin"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success">
+			/evaluation/adminUser.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="gotoAddUser" method="gotoAddUser"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success">
+			/evaluation/adminAddUser.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="selectUserStatus" method="selectUserStatus"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success">
+			/evaluation/adminUser.jsp
+		</result>
+	</action>
+
+	<action name="gotoUpdateUser" method="gotoUpdateUser"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success">
+			/evaluation/adminUpdateUser.jsp
+		</result>
+		<result name="noUserId" type="chain">
+			gotoUserAdmin
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="updateUser" method="updateUser"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success">
+			/evaluation/adminUpdateUser.jsp
+		</result>
+		<result name="success" type="chain">
+			gotoUserAdmin
+		</result>
+	</action>
+
+	<action name="removeUser" method="removeUser"
+		class="com.pfizer.sce.Action.UserAdminAction">
+		<result name="success" type="chain">
+			gotoUserAdmin
+		</result>
+	</action>
+
+	<action name="addUser" method="addUser"
+		class="com.pfizer.sce.Action.UserAdminAction">
+
+		<result name="createUserFailed">
+			/evaluation/adminAddUser.jsp
+		</result>
+		<result name="createUserRefresh">
+			/evaluation/adminAddUser.jsp
+		</result>
+		<result name="success" type="chain">
+			gotoUserAdmin
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jspp
+		</result>
+	</action>
+
+
+	<action name="viewEvaluation" method="viewEvaluation"
+		class="com.pfizer.sce.Action.EvaluationAction">
+
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="success2">
+			/evaluation/showPdf.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="viewEvaluationHistory" method="viewEvaluationHistory"
+		class="com.pfizer.sce.Action.EvaluationAction">
+
+		<result name="success">
+			/evaluation/evaluationResults.jsp
+		</result>
+		<result name="success1" type="chain">
+			viewEvaluation
+		</result>
+		<result name="success2">
+			/evaluation/showPdf.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+
+	</action>
+
+	<action name="viewEvaluationFromHistory" method="viewEvaluationFromHistory"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+
+	</action>
+	
+
+	<action name="enterNewEvaluation" method="enterNewEvaluation"
+		class="com.pfizer.sce.Action.EvaluationAction">
+
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+
+	</action>
+
+	<action name="giveAutoCredit" method="giveAutoCredit"
+		class="com.pfizer.sce.Action.EvaluationAction">
+
+		<result name="success">
+			/evaluation/evaluateSuccess.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+
+	</action>
+
+	<action name="cancelEvaluation" method="cancelEvaluation"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/home.jsp
+		</result>
+	</action>
+
+	<action name="backToEvaluationResults" method="backToEvaluationResults"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluationResults.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="backToSelectAttendee" method="backToSelectAttendee"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/home.jsp
+		</result>
+	</action>
+
+	<action name="backToSCEForm" method="backToSCEForm"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="noAttendees">
+			/evaluation/home.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="deleteSCE" method="deleteSCE"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluationResults.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="selectAnotherAttendee" method="selectAnotherAttendee"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="backToScePendingReport" method="backToScePendingReport"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/scePendingReport.jsp
+		</result>
+
+	</action>
+
+	<action name="viewPDFEvaluationFromHistory" method="viewPDFEvaluationFromHistory"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="success2">
+			/evaluation/showPdf.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+
+	</action>
+
+
+	<action name="uploadEvaluation" method="uploadEvaluation"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/UploadEvaluationForm.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+	<action name="submitSCE" method="submitSCE"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluateSuccess.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+
+
+	<action name="doGotoEvaluationResults" method="gotoEvaluationResults1"
+		class="com.pfizer.sce.Action.EvaluationAction">
+		<result name="success">
+			/evaluation/evaluationResults.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>		
+		
+		
+<!--  @GADALP Struts Action End-->
+	
+		
+<action name="gotovirtualtrainingstatus" method="gotovirtualtrainingstatus" class="com.pfizer.sce.Action.VirtualStatusAction">
+  <result name="success">/evaluation/statusofvirtualtraining.jsp</result> 
+  <result name="legalConsent">/evaluation/legalConsent.jsp</result> 
+  <result name="failure">/evaluation/errorPage.jsp</result> 
+  </action>
+  
+  <action name="viewCourseForProduct" method="viewCourseForProduct" class="com.pfizer.sce.Action.VirtualStatusAction">
+  <result name="success">/evaluation/statusofvirtualtraining.jsp</result> 
+  <result name="legalConsent">/evaluation/legalConsent.jsp</result> 
+  <result name="failure">/evaluation/errorPage.jsp</result> 
+  </action>
+  
+  <action name="gotoViewLearner" method="gotoViewLearner" class="com.pfizer.sce.Action.VirtualStatusAction">
+  <result name="success">/evaluation/statusofvirtualtraining.jsp</result> 
+  <result name="legalConsent">/evaluation/legalConsent.jsp</result> 
+  <result name="failure">/evaluation/errorPage.jsp</result> 
+  </action>
+  
+   <action name="gotoSelectLearner" method="gotoSelectLearner" class="com.pfizer.sce.Action.VirtualStatusAction">
+  <result name="success">/evaluation/statusofvirtualtraining.jsp</result> 
+  <result name="legalConsent">/evaluation/legalConsent.jsp</result> 
+  <result name="failure">/evaluation/errorPage.jsp</result> 
+  </action>
+  
+  <!-- ADDED BY KHATED START-->
+		<action name="goToWebEx" method="goToWebEx"
+			class="com.pfizer.sce.Action.WebExAction">
+			<result name="success">
+				/evaluation/addWebExDetails.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+		</action>
+		
+		<action name="goToAddWebEx" method="goToAddWebEx"
+			class="com.pfizer.sce.Action.WebExAction">
+			<result name="success">
+				/evaluation/addWebExDetails.jsp
+			</result>
+			<result name="refresh">
+				/evaluation/addWebExDetails.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+		</action>
+		<action name="goToDownloadWebExTemplate" method="goToDownloadWebExTemplate"
+			class="com.pfizer.sce.Action.WebExAction">
+			<!-- <result name="success">
+				/evaluation/downloadWebExTemplate.jsp
+			</result> -->
+			<result name="success" type="stream">
+				<param name="contentType">application/vnd.ms-excel</param>
+				<param name="inputName">inputStream</param>
+				<param name="contentDisposition">attachment;filename=webex.xls</param>
+				<param name="bufferSize">4096</param>
+			</result>
+			</action>
+			
+		<!-- ADDED BY KHATED END -->
+
+
+
+
+	
+	
+
+		<action name="createEvaluationTemplate" method="gotoCreateEvaluationTemplate"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/createEvaluationTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+
+		<action name="editEvaluationTemplate" method="gotoEditEvaluationTemplate"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/createEvaluationTemplate.jsp
+			</result>
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+		<action name="saveEvaluationTemplate" method="saveEvaluationTemplate"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/adminTemplate.jsp
+			</result>
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="createEvaluationTemplate">
+				/evaluation/createEvaluationTemplate.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+		<action name="selectScoringSystem" method="selectScoringSystem"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/createEvaluationTemplate.jsp
+			</result>
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="gotoCreateEvaluationTemplate" type="chain">
+				createEvaluationTemplate
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+
+		
+		<action name="uploadBlankForm" method="uploadBlankForm"
+			class="com.pfizer.sce.Action.FileUploadAction">
+			<result name="success">
+				/evaluation/<!-- adminTemplate.jsp -->uploadBlankForm.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+
+	<action name="gotoTemplateAdmin" method="gotoTemplateAdmin"
+			class="com.pfizer.sce.Action.FileUploadAction">
+			<result name="success">
+				/evaluation/adminTemplate.jsp 
+			</result>
+			<result name="failure">
+				/evaluation/adminTemplate.jsp 
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+		</action>
+
+		<action name="preview" method="preview"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/adminTemplatePreview.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+
+
+		<action name="cancel" method="cancel"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/adminTemplate.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+
+		<!-- <action name="uploadBlankForm" class="com.pfizer.sce.Action.FileUploadAction">
+
+			<interceptor-ref name="fileUpload">
+				<param name="maximumSize">2097152</param>
+
+
+
+				<param name="allowedTypes">
+
+					image/png,image/gif,image/jpeg,image/pjpeg
+
+				</param>
+
+			</interceptor-ref>
+
+			<interceptor-ref name="defaultStack"></interceptor-ref>
+			<result name="success">/evaluation/uploadBlankForm.jsp</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action> -->
+		
+		<action name="templateAdmin" method="gotoTemplateAdmin"
+			class="com.pfizer.sce.Action.EvaluationTemplateAction">
+			<result name="success">
+				/evaluation/adminTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+		</action>
+		
+		<action name="gotoSCEReport" method="gotoSCEReport"
+			class="com.pfizer.sce.Action.UserAdminAction">
+			<result name="success">
+				/evaluation/adminTemplate.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<!-- ADDED BY @TIJARA START  -->
+		
+		<action name="gotoEvalTemplateMapping" method="gotoEvalTemplateMapping"
+			class="com.pfizer.sce.Action.CourseMappingAction">
+			<result name="success">
+				/evaluation/courseEvaluationTemplateMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="retrieveMappingDetails" method="retrieveMappingDetails"
+			class="com.pfizer.sce.Action.CourseMappingAction">
+			<result name="success">
+				/evaluation/courseEvaluationTemplateMapping.jsp
+			</result>
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="searchCourse" method="searchCourseDetails"
+		class="com.pfizer.sce.Action.CourseMappingAction">
+		<result name="success">
+			/evaluation/searchCourse.jsp
+		</result>
+		<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+	</action>
+	
+	<action name="searchCourseDetails" method="getAllSearchedCourseDetails"
+		class="com.pfizer.sce.Action.CourseMappingAction">
+		<result name="success">
+			/evaluation/searchCourse.jsp
+		</result>
+		<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+	</action>
+	
+	<action name="delete" method="deleteLmsMappings"
+		class="com.pfizer.sce.Action.CourseMappingAction">
+		<result  name="success">
+			/evaluation/courseEvaluationTemplateMapping.jsp
+		</result>
+		<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+	</action>
+	
+	<action name="validateAlreadyMapped" method="validateAlreadyMapped"
+		class="com.pfizer.sce.Action.CourseMappingAction">
+		<result name="success">
+			/evaluation/courseEvaluationTemplateMapping.jsp
+		</result>
+		<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+	</action>
+	
+	<action name="saveCourseMappings" method="saveCourseMappings"
+		class="com.pfizer.sce.Action.CourseMappingAction">
+		<result name="success">
+			/evaluation/courseEvaluationTemplateMapping.jsp
+		</result>
+		<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+	</action>
+	
+	<action name="gototFieldFacultyMaintenance" method="gototFieldFacultyMaintenance"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/fieldFacultyMaintenance.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+	
+	<action name="gotoViewGTList" method="gotoViewGTList"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/fieldFacultyMaintenance.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="gotoAddGT" method="gotoAddGT"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/addnewGT.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+			<action name="gotoUploadGT" method="gotoUploadGT"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/uploadGTList.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+	
+	<action name="gotoSelectAllGT" method="gotoSelectAllGT"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/fieldFacultyMaintenance.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="removeGuestTrainer" method="removeGuestTrainer"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/fieldFacultyMaintenance.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="gotoSaveGT" method="gotoSaveGT"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/fieldFacultyMaintenance.jsp
+			</result>
+			<result name="alreadyExist">
+				/evaluation/addnewGT.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="gotoUploadGTList" method="gotoUploadGTList"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/uploadGTList.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="downloadGTTemplate" method="downloadGTTemplate"
+			class="com.pfizer.sce.Action.FieldFacultyMaintainanceAction">
+			<result name="success">
+				/evaluation/downloadGTTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="trainerLearnerMapping" method="gotoTrainerLearnerMapping"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="getCourseDates" method="getCourseDates"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+			<action name="getMappingsBasedOnTrainer" method="getMappingsBasedOnTrainer"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="getMappedTrainerLearners" method="getMappedTrainerLearners"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="getEventCourses" method="getEventCourses"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="saveTrainerLearnerMap" method="saveTrainerLearnerMap"
+			class="com.pfizer.sce.Action.TrainerLearningMappingAction">
+			<result name="success">
+				/evaluation/trainerLearnerMapping.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>
+
+		</action>
+		
+		<action name="gotoEmailTemplateAdmin" method="gotoEmailTemplateAdmin"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		
+<action name="getScoringOptions" method="getScoringOptions"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>	
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>		
+		</action>
+
+
+		
+        <action name="searchEmailTemplates" method="searchEmailTemplates"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+	
+		<action name="publishEmailTemplate" method="publishEmailTemplate"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>
+			<result name="forwardURL" type="redirect">
+			${pageURL}
+		</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="gotoEditEmailTemplate" method="gotoEditEmailTemplate"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/editEmailTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="saveEmailTemplate" method="saveEmailTemplate"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="deleteEmailTemplate" method="deleteEmailTemplate"
+			class="com.pfizer.sce.Action.EmailTemplateAdminAction">
+			<result name="success">
+				/evaluation/emailTemplate.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+        <action name="acceptLegalConsentTr" method="acceptLegalConsentTr"
+		class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+		<result name="successEvaluate" type="chain">
+			enterNewEvaluationReportfromTRT
+		</result>
+		<result name="successView" type="chain">
+			viewEvaluationTR
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+		
+		<action name="evaluateTR" method="evaluateTR"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="success1">
+				/evaluation/evaluateAttendeeTR.jsp
+			</result>
+			<result name="success2">
+				/evaluation/evaluatePhase.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="enterNewEvaluationReportfromTRT" method="enterNewEvaluationReportfromTRT"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="success1">
+				/evaluation/evaluateAttendeeTR.jsp
+			</result>
+			<result name="success2">
+				/evaluation/evaluatePhase.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="sceTRHistoryView" method="sceTRHistoryView"
+		class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+		<result name="checkForLcAcceptance">
+			/evaluation/legalConsentTR.jsp
+		</result>
+		<result name="redirectToSingleView" type="chain">
+		viewEvaluationTR 
+		</result>
+		<result name="unauthorizedSCEUser">
+			/Unauthorized.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+		
+		<action name="submitSCETRPhase" method="submitSCETRPhase"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="success">
+				/evaluation/evaluateSuccessTR.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="submitSCETR" method="submitSCETR"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="success">
+				/evaluation/evaluateSuccessTR.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="goToLegalCheckTr" method="goToLegalCheckTr"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="redirectToLc">
+				/evaluation/legalConsentTR.jsp
+			</result>
+			<result name="redirectToEvaluate" type="chain">
+				enterNewEvaluationReportfromTRT
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="goToHistoryCheckTr" method="goToHistoryCheckTr"
+			class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+			<result name="checkForLcAcceptance">
+				/evaluation/legalConsentTR.jsp
+			</result>
+			<result name="redirectToSingleView" type="chain">
+				viewEvaluationTR
+			</result>
+			<result name="redirectToHistory">
+				/evaluation/trtHistory.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/evaluation/errorPage.jsp
+			</result>			
+		</action>
+
+<action name="submitSCEEvaluate" method="submitSCEEvaluate"
+		class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+		<result name="success">
+			/evaluation/EvaluateSCEForm.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+	
+	<action name="evaluateSCE" method="evaluateSCE"
+		class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+		<result name="success">
+			/evaluation/EvaluateSCEForm.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+		
+		<action name="viewEvaluationTR" method="viewEvaluationTR"
+		class="com.pfizer.sce.Action.EvaluateAttendeeAction">
+		<result name="success">
+			/evaluation/evaluateAttendee.jsp
+		</result>
+		<result name="success2">
+			/evaluation/showPdf.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+		
+	
+		
+		<!-- ADDED @TIJARA END -->
+		
+		<!-- megha starts -->
+		
+			<action name="gotoFetchGTs" method="gotoFetchGTs"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/inviteGT.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+	
+	<action name="gotoConfirmInvitation" method="gotoConfirmInvitation"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/sendEmailConfirm.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+	
+<!-- 	Added By ankit on 17 june -->
+	<action name="acceptGTinviteManual" method="acceptGTinviteManual"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/inviteGT.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+<!-- End  -->
+
+<!-- 	Added By ankit on 7 july -->
+	<action name="pushDateTime" method="pushDateTime"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/sendEmailConfirm2.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+<!-- End  -->
+
+
+	
+		
+		<action name="acceptRejectInvite" method="acceptRejectInvite"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/acceptRejectInvite.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+		<result name="failure">
+			/evaluation/errorPage.jsp
+		</result>
+	</action>
+	
+	<action name="gotoviewGTByEvent" method="gotoviewGTByEvent"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/inviteGT.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+	
+<!-- 	Added by ankit on 4june-->
+	<action name="getEventProduct" method="getEventProduct"
+		class="com.pfizer.sce.Action.EventInvitationAction">
+		<result name="success">
+			/evaluation/inviteGT.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+	
+	
+	
+	
+	<action name="gotoConfirmEmailSent" method="gotoConfirmEmailSent" 
+			class="com.pfizer.sce.Action.EventInvitationAction">
+			<result  name="success">
+				/evaluation/sendEmail.jsp
+			</result>
+			<result name="legalConsent">
+				/evaluation/legalConsent.jsp
+			</result>
+			<result name="failure">
+				/errorPage.jsp
+			</result>			
+		</action>
+		
+		<action name="gotoLegalTemplate" method="gotoLegalTemplate"
+		class="com.pfizer.sce.Action.LegalConsentAction">
+		<result name="success">
+			/evaluation/legalTemplateMaintenance.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+		<result name="legalConsent">
+			/evaluation/legalConsent.jsp
+		</result>
+	</action>
+	
+	<action name="publish" method="publishLegalTemplate"
+		class="com.pfizer.sce.Action.LegalConsentAction">
+		<result name="success">
+			/evaluation/legalTemplateMaintenance.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+		
+	</action>
+	
+	<action name="edit" method="editLegalTemplate"
+		class="com.pfizer.sce.Action.LegalConsentAction">
+		<result name="success">
+			/evaluation/editLegalTemplate.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+	
+	</action>
+	
+
+	
+	<action name="save" method="saveLegalTemplate"
+		class="com.pfizer.sce.Action.LegalConsentAction">
+		<result name="success">
+			/evaluation/legalTemplateMaintenance.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+	
+	</action>
+	
+		
+		<!-- megha ends -->
+		
+		<!-- Added Adhbut starts -->
+		
+	<action name="gotoEventManagement" method="gotoEventManagement"
+		class="com.pfizer.sce.Action.EventManagement">
+		<result name="success">
+			/evaluation/eventManagement.jsp
+		</result>
+		<result name="failure">
+			/evaluation/error.jsp
+		</result>
+	
+	</action>
+		
+		
+		<!-- <action name="goEventManagement" method="gotoEventManagement"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/eventManagement.jsp</result>
+		</action> -->
+
+		<action name="gotoEditEvent" method="gotoEditEvent"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/addEventDisplay.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action> 
+
+		<action name="gotoRemoveEvent" method="gotoRemoveEvent"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/eventManagement.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoAddEvent" method="gotoAddEvent"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/addEvent.jsp</result>
+			<result name="legalConsent">/evaluation/legalConsent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoAddEventDisplay" method="gotoAddEventDisplay"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/eventManagement.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+			<result name="refresh">/evaluation/addEvent.jsp</result>
+		</action>
+
+		<action name="gotoUpdateEvent" method="gotoUpdateEvent"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/eventManagement.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoEventMapping" method="gotoEventMapping"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/eventMapping.jsp</result>
+		</action>
+
+		<action name="gotoRetrieveEventMapping" method="gotoRetrieveEventMapping"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/eventMapping.jsp</result>
+			<result name="legalConsent">/evaluation/legalConsent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="searchCourseDetailsForEvent" method="searchCourseDetailsForEvent"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/searchCourseForEvent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoDeleteEventMapping" method="gotoDeleteEventMapping"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/eventMapping.jsp</result>
+			<result name="legalConsent">/evaluation/legalConsent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoSaveEventMapping" method="gotoSaveEventMapping"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/eventMapping.jsp</result>
+			<result name="legalConsent">/evaluation/legalConsent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoDeleteProductMapping" method="gotoDeleteProductMapping"
+			class="com.pfizer.sce.Action.EventCourseMapping">
+			<result name="success">/evaluation/eventMapping.jsp</result>
+			<result name="legalConsent">/evaluation/legalConsent.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+
+		<action name="gotoUpdateEvent" method="gotoUpdateEvent"
+			class="com.pfizer.sce.Action.EventManagement">
+			<result name="success">/evaluation/eventManagement.jsp</result>
+			<result name="failure">/evaluation/errorPage.jsp</result>
+		</action>
+	
+		<!-- Added Adhbut ends -->
+	
+	</package>
+
+
+</struts>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	
+	<class name="com.pfizer.sce.beans.LegalConsentTemplate" table="LEGAL_CONSENT_TEMPLATE">
+		<meta attribute="class-description">
+		This class contains employee detail.
+		</meta>
+		<id name="lcId" type="int" column="LC_ID" />
+		<property name="content" column="LC_CONTENT" type="string"
+			unique="false"/>
+		<property name="version" column="VERSION" type="int" 
+			unique="false"/>
+		<property name="publishFlag" column="PUBLISH_FLAG" type="string"
+			unique="false"/>
+		<property name="modifiedBy" column="MODIFIED_BY" type="string"
+			unique="false"/>
+		<property name="modifiedDate" column="MODIFIED_DATE" type="date"
+			unique="false"/>
+		<property name="publishedBy" column="PUBLISHED_BY" type="string"
+			unique="false"/>
+		<property name="publishedDate" column="PUBLISHED_DATE" type="date"
+			unique="false"/>
+	</class>
+</hibernate-mapping>

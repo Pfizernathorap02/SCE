@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>SALESCALLEVALUATION</display-name>
+	<filter>
+		<filter-name>struts2</filter-name>
+		<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>struts2</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+		     <!--Added by Neha 19/11/2011-->  
+    <servlet>
+        <servlet-name>showPdf</servlet-name>
+        <servlet-class>com.pfizer.sce.servlets.ShowPdfServlet</servlet-class>
+    </servlet>
+   
+    
+     <!--End Added by Neha-->
+    <!-- Struts Action Servlet Mappings -->
+    <!-- Note that because Struts takes the *last* mapping here as the extension to add to
+         actions posted from forms, we must have *.do come after *.jpf. -->
+    
+     <!--Added by Rupinder 28/11/2011-->
+    <servlet>
+        <servlet-name>showBlankFormPDF</servlet-name>
+        <servlet-class>com.pfizer.sce.servlets.ShowBlankFormPDFServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>showPdf</servlet-name>
+        <url-pattern>/showPdf</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>showBlankFormPDF</servlet-name>
+        <url-pattern>/showBlankPDF</url-pattern>
+    </servlet-mapping>
+     <!--End Added by Rupinder-->
+
+	<error-page>
+		<error-code>500</error-code>
+		<location>/error.jsp</location>
+	</error-page>
+
+    <welcome-file-list>
+        <welcome-file>/evaluation/redirect.jsp</welcome-file>     
+    </welcome-file-list>
+    
+    <session-config>
+    	<session-timeout>120</session-timeout>
+    </session-config>
+    
+ 	  <servlet>
+        <servlet-name>WebExTemplate</servlet-name>
+        <servlet-class>com.pfizer.sce.servlets.WebExTemplateServlet</servlet-class>
+    </servlet> 
+
+	<!-- <servlet-mapping>
+		<servlet-name>WebExTemplate</servlet-name>
+		<url-pattern>/WebExTemplateUnFilter</url-pattern>
+	</servlet-mapping> -->
+
+	<servlet-mapping>
+		<servlet-name>WebExTemplate</servlet-name>
+		<url-pattern>/WebExTemplate</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+        <servlet-name>showGTUploadTemplate</servlet-name>
+        <servlet-class>com.pfizer.sce.servlets.showUploadGTListServlet</servlet-class>
+    </servlet>
+        
+      <servlet-mapping>
+        <servlet-name>showGTUploadTemplate</servlet-name>
+        <url-pattern>/showGTUploadTemplate</url-pattern>
+    </servlet-mapping> 
+   
+	
+</web-app>

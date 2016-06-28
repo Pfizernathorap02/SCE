@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+
+<hibernate-mapping>
+
+	<class name="com.pfizer.sce.beans.LegalQuestion" table="legal_questions">
+		<meta attribute="class-description">
+			This class contains the legal_questions detail.
+		</meta>
+		<id name="id" column="legal_question_id" type="int" />
+		<property name="templateVersionId" column="template_version_id" type="int" />		
+		<property name="displayOrder" column="display_order" type="int" />
+		<property name="legalQuestionLabel" column="legal_question_label" type="string" />
+		<property name="legalQuestion" column="legal_question" type="string" />
+		
+
+	</class>
+</hibernate-mapping>
