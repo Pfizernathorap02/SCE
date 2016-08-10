@@ -12887,6 +12887,54 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			return result;
 		}
 		
+		//code added by manish to update template table
+		
+		public void updateTemplate(TemplateVersion templateVersion)
+				throws SQLException {
+
+			Session session1 = HibernateUtils.getHibernateSession();
+			StringBuilder queryString1 = new StringBuilder();
+	System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
+			Transaction ts1 = session1.beginTransaction();
+			try {
+				// System.out.println("updateTemplateVersion1");
+
+				queryString1
+						.append("UPDATE template set name =:formTitle ")
+							.append("WHERE template_id =:templateId");
+				
+				
+				String q1 = queryString1.toString();
+				System.out.println("query running for updating the template:" + queryString1);
+
+				Query q = session1.createSQLQuery(q1);
+				q.setParameter("formTitle", templateVersion.getFormTitle());
+				
+				System.out.println("===============================");
+				System.out.println("Form Title:"+templateVersion.getFormTitle());
+				System.out.println("===============================");
+				
+				q.setParameter("templateId", templateVersion.getTemplateId());
+				
+				
+
+				int result = q.executeUpdate();
+
+				// System.out.println("Result : " + result);
+				ts1.commit();
+				// System.out.println("updateTemplateVersion2");
+				
+			} catch (HibernateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				HibernateUtils.closeHibernateSession(session1);
+			}
+
+		}
+
+	//code end	
+		
 		
 		
 }
