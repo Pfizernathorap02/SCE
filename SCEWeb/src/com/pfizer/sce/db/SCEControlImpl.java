@@ -2148,6 +2148,9 @@ public class SCEControlImpl {
 		SCE[] sceArray = null;
 		List<SCE> sceObjList = new ArrayList<SCE>();
 
+		System.out.println("Event Id:"+eventId);
+		System.out.println("empId:"+emplId);
+		System.out.println("product Name:"+productName);
 		try {
 			queryString
 					.append("SELECT  ")
@@ -2232,6 +2235,7 @@ public class SCEControlImpl {
 
 			String q1 = queryString.toString();
 
+			System.out.println("Query Used to view evaluations:"+q1);
 			Query q = session
 					.createSQLQuery(q1)
 					.addScalar("id")
@@ -6245,7 +6249,7 @@ public class SCEControlImpl {
 							+ "order by t.name asc,tv.version desc ");
 
 			String q1 = queryString.toString();
-			// System.out.println("quer2" + queryString);
+			System.out.println("query to get all template versions" + queryString);
 
 			List<TemplateVersion> newListTemplateVersion = new ArrayList<TemplateVersion>();
 			Query q = session
@@ -12936,5 +12940,52 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	//code end	
 		
 		
+	//code added by manish to update template_version table
 		
+		public void updateTemplateVersion1(TemplateVersion templateVersion)
+				throws SQLException {
+
+			Session session1 = HibernateUtils.getHibernateSession();
+			StringBuilder queryString1 = new StringBuilder();
+	System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
+			Transaction ts1 = session1.beginTransaction();
+			try {
+				// System.out.println("updateTemplateVersion1");
+
+				queryString1
+						.append("UPDATE template_version set form_title =:formTitle ")
+							.append("WHERE template_id =:templateId");
+				
+				
+				String q1 = queryString1.toString();
+				System.out.println("query running for updating the template:" + queryString1);
+
+				Query q = session1.createSQLQuery(q1);
+				q.setParameter("formTitle", templateVersion.getFormTitle());
+				
+				System.out.println("===============================");
+				System.out.println("Form Title:"+templateVersion.getFormTitle());
+				System.out.println("===============================");
+				
+				q.setParameter("templateId", templateVersion.getTemplateId());
+				
+				
+
+				int result = q.executeUpdate();
+
+				// System.out.println("Result : " + result);
+				ts1.commit();
+				// System.out.println("updateTemplateVersion2");
+				
+			} catch (HibernateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				HibernateUtils.closeHibernateSession(session1);
+			}
+
+		}
+
+	//code end
+
 }

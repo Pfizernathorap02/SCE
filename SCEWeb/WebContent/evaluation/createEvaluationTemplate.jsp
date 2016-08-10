@@ -1707,7 +1707,7 @@ function setCallSectionValues()
 							{
 						%>
 						<input class="form_title" name="form_title" id="form_title"
-							type="text" style="color: #ccc;"
+							type="text"
 							value="<%=SCEUtils.replace(
 						SCEUtils.ifNull(templateVersion.getFormTitle(), ""),
 						"\"", "&quot;")%>" />

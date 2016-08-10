@@ -70,12 +70,12 @@
 
 			if (session.getAttribute("user") == null) {
 				User user = new User();
-				user.setFirstName("Ankit");
-				user.setLastName("Mehra");
-				user.setNtid("MEHRAA04");
+				user.setFirstName("Manish");
+				user.setLastName("Kumar");
+				user.setNtid("KUMAM102");
 				//user.setNtid("SINGHM24");
-				user.setNtdomain("amer");
-				user.setEmail("ankit.mehra@pfizer.com");
+				user.setNtdomain("apac");
+				user.setEmail("manish.kumar2@pfizer.com");
 				user.setStatus("ACTIVE");
 				//user.setUserGroup("SCE_OpsManager");
 				user.setUserGroup("SCE_Administrators");

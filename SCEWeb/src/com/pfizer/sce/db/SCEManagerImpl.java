@@ -2306,7 +2306,11 @@ public class SCEManagerImpl {
 				System.out.println("Updating template table");
 				sceControl.updateTemplate(templateVersion);
 				System.out.println("Template table updated");
+				sceControl.updateTemplateVersion(templateVersion);
 				
+				System.out.println("Updating template table");
+				sceControl.updateTemplateVersion1(templateVersion);
+				System.out.println("Template table updated");
 			}
 
 		} catch (SQLException sqle) {
