@@ -251,7 +251,17 @@ function selecttimeSlots(tempobj)
 function checkAlltimeSlots(tempobj)
 {
 	
+	//added by manish
 	
+		if (document.getElementById("eventStartDate").value == null || document.getElementById("eventStartDate").value =="" ) 
+	{
+		alert("Please select a Date.");
+		document.getElementById("pushButton").disabled = true;
+		document.getElementById("selectalltimeslots").checked = false;
+		return false;
+	}
+	
+	//
 		timeslots = "";
 		if (tempobj.checked == true) 
 		{
