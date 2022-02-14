@@ -3,7 +3,7 @@
 <%@ page language="java" contentType="text/html;charset=UTF-8"%>
 <%@ taglib prefix="s" uri="/struts-tags"%>
 
-<%@include file="IAM_User_Auth.jsp"%>
+<%@include file="IAM_User_Auth.jsp"%> 
 
 <%
     pageContext.setAttribute("searchButton",request.getContextPath()+"/evaluation/resources/_img/button_search.gif");  

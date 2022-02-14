@@ -34,6 +34,9 @@
             <div id="main_content">
                 <h4>You are not authorized to use this application, please contact SCE Support Team (<A HREF="mailto:DL-SAMSSCESupport@pfizer.com">DL-SAMSSCESupport@pfizer.com</A>) to grant you access to SCE application.</h4>
                 <div class="clear"></div>	
+            	
+            	<%-- <h4><a href="<%=request.getContextPath()%>/evaluation/getAccess.jsp">Click here </a>to request access.</h4> --%>
+            
             </div> <!-- end #content -->
     
         </div><!-- end #wrap -->

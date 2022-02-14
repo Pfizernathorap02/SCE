@@ -23,6 +23,15 @@ public class User {
 	private Date createDate;
 	private Date lastModifiedDate;
 	private Date lastLogin;
+	//added by muzees for PBG and UpJOHN
+	private String businessUnit; 
+	
+	private String isAccessRequest;
+	
+	private String requestApprovers;
+	private String requestApprover1;
+	private String requestApprover2;
+	private String requestApprover3;
 
 	/* Added for CSO Enhancement */
 	private String salesPositionTypeCd = "";
@@ -190,4 +199,55 @@ public class User {
 	public void setExpirationDate(String expirationDate) {
 		this.expirationDate = expirationDate;
 	}
+
+	public String getIsAccessRequest() {
+		return isAccessRequest;
+	}
+
+	public void setIsAccessRequest(String isAccessRequest) {
+		this.isAccessRequest = isAccessRequest;
+	}
+
+	public String getRequestApprover1() {
+		return requestApprover1;
+	}
+
+	public void setRequestApprover1(String requestApprover1) {
+		this.requestApprover1 = requestApprover1;
+	}
+
+	public String getRequestApprover2() {
+		return requestApprover2;
+	}
+
+	public void setRequestApprover2(String requestApprover2) {
+		this.requestApprover2 = requestApprover2;
+	}
+
+	public String getRequestApprover3() {
+		return requestApprover3;
+	}
+
+	public void setRequestApprover3(String requestApprover3) {
+		this.requestApprover3 = requestApprover3;
+	}
+
+	public String getRequestApprovers() {
+		return requestApprovers;
+	}
+
+	public void setRequestApprovers(String requestApprovers) {
+		this.requestApprovers = requestApprovers;
+	}
+
+
+	public String getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(String businessUnit) {
+		this.businessUnit = businessUnit;
+	}
+
+
 }

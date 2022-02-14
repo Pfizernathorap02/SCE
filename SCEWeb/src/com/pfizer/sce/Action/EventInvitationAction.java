@@ -1,12 +1,15 @@
 package com.pfizer.sce.Action;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -15,6 +18,8 @@ import com.pfizer.sce.beans.LegalConsentTemplate;
 import com.pfizer.sce.beans.SCEException;
 import com.pfizer.sce.beans.User;
 import com.pfizer.sce.beans.UserLegalConsent;
+import com.pfizer.sce.common.SCEConstants;
+import com.pfizer.sce.db.SCEControlImpl;
 import com.pfizer.sce.db.SCEManagerImpl;
 import com.pfizer.sce.helper.EvaluationControllerHelper;
 import com.pfizer.sce.helper.LegalConsentHelper;
@@ -282,14 +287,11 @@ ServletRequestAware{
 			System.out.println("Accepting Invite");
 			sceManager.gotoConfirmInvitation(email,"Y", event, product);
 			System.out.println("Invite Accepted");
-		  
-			//New Code to added
+
 			req.setAttribute("Event",event);
 			req.setAttribute("Product", product);
 			req.setAttribute("Email", email);
-			//New Code End
 
-			
 			  return new String("success");
 			
 			  
@@ -306,125 +308,298 @@ ServletRequestAware{
 	  /*
 	   * End
 	   */
-	  public String acceptRejectInvite(){
+	  public String acceptRejectInvite() throws IOException{
 		  
-		  HttpServletRequest req = getServletRequest();   
-             HttpSession session = req.getSession();
-             String queryString=null;
-            
-//       return new Forward("success");                            
-          String eventN = req.getParameter("whichEvent");
-          String startDate = req.getParameter("strDate");
-          String productName = req.getParameter("productName");
-          String gtEmail = req.getParameter("GtEmail");
-          String bookMarkURL=null;
-          String redirectTo=null;
-          if(gtEmail!= null && gtEmail!="")
-           queryString="whichEvent="+eventN+"&productName="+productName+"&"+"strDate="+startDate+"&GtEmail"+gtEmail;
-          else
-          queryString="whichEvent="+eventN+"&productName="+productName+"&"+"strDate="+startDate;
-    try{            
-    String result = checkLegalConsent(req,session);
-    System.out.println("*****result*****:"+result);
-    if(result != null && result.equals("success")  ){
-        System.out.println("*************Forwarding to legalConsent");
-        String forwardToHomePage = "N";
-        EvaluationControllerHelper.setBookMarkURL(session,req,forwardToHomePage);
-         if(queryString!=null){
-         bookMarkURL=(String)session.getAttribute("bookMarkURL");
-         redirectTo=bookMarkURL+"?"+queryString;
-         session.setAttribute("bookMarkURL",redirectTo);
-         }
-         return new String("legalConsent");
-    }else if(result != null && result.equals("exception")){
-        System.out.println("**********Forwarding to exception");
-        return new String("failure");
-    }
-    System.out.println("EventName set As: "+eventN);
-    System.out.println("StartDate set As: "+startDate);
-    System.out.println("Product set As: "+productName);
-    
-      req.setAttribute("eventName",eventN);
-      req.setAttribute("productName",productName);
-      req.setAttribute("startDate",startDate);
-      req.setAttribute("startDate",startDate);
-      if(gtEmail!= null && gtEmail!="")
-      {
-    	  req.setAttribute("GtEmail",gtEmail);  
-      }
-            
-    }catch(Exception e){
-        req.setAttribute("errorMsg","error.sce.unknown");
-        //sceLogger.error(LoggerHelper.getStackTrace(e));
-        return new String("failure");
-    }
-    
- 
-  
+		 	  
+		HttpServletRequest req = getServletRequest();
+		/*String code=request.getParameter("authcode");*/
+		HttpSession session = req.getSession();
+		String queryString = null;
+		
+		
+		// authenticating invite
+		String ntid = null;
+		String domain = null;
+		String emplid = null;
+		SCEControlImpl sceControl = new SCEControlImpl();
+		HttpServletResponse response = ServletActionContext.getResponse();
+		String userDetails = sceControl.getAuthenticatedUserID(request,
+				response);
+		System.out.println("Oauth details  : " + userDetails);
 
-    return new String("success");  
-		  
-	  }
+		if (!userDetails.startsWith("null") && userDetails.length() > 0) {
+			String[] userDetailsArray = userDetails.split(",");
+			ntid = userDetailsArray[0];
+			domain = userDetailsArray[1];
+			emplid = userDetailsArray[2];
+		} else {
+			// shindo added session expired
+			response.sendRedirect(request.getContextPath()
+					+ "/sessionExpired.jsp");
 
-	  
+		}
+
+		String userid = getAuthUserId(domain, ntid);
+
+		User user = new User();
+
+		if (userid.trim().length() > 0) {
+			System.out.println("The ntid is " + ntid);
+
+			System.out.println("The domain is " + domain);
+
+			System.out.println("The empid is " + emplid);
+
+			System.out.println("The userid is " + userid);
+
+			if (ntid.length() > 0) {
+				System.out.println("Came inside IF");
+				/*
+				 * user = sceCtl.getUserByNTIdAndDomain(ntid,domain); 2020
+				 * Q2:domain required logic condition removed
+				 */
+				user = sceControl.getUserByNTIdAndDomain(ntid);
+				
+				/*shindo added for acceptinvite oauth*/
+				if (user.getStatus().equals("INACTIVE")){
+					SCEConstants.INVITE_FLAG="N";
+					response.sendRedirect("Unauthorized.jsp");
+				}
+				
+				
+				/* Added for CSO requirements */
+				if (user != null) {
+					String sType = "";
+					sType = sceControl.getSalesPositionTypeCd(ntid);
+					if (sType != null) {
+						user.setSalesPositionTypeCd(sType);
+					}
+					System.out.println("Sales Position Type Code is "
+							+ user.getSalesPositionTypeCd());
+					String sceVisible = sceControl.getSceVisibility(user
+							.getSalesPositionTypeCd());
+					System.out.println("SCE Visibility is " + sceVisible);
+					if (sceVisible == null || sceVisible.equalsIgnoreCase("Y")
+							|| sceVisible.equals("")) {
+						user.setSceVisibility("Y");
+					} else {
+						user.setSceVisibility("N");
+					}
+				}
+				/* End of Addition */
+				System.out.println("Got User");
+			} else {
+				user = null;
+			}
+
+			System.out.println("The user is " + user);
+
+			if (user == null || !user.isActive()) {
+
+				/*
+				 * ------------------------DEXTER's LAB EXPERIMENT PART ONE
+				 * STARTS ----------------------
+				 */
+
+				String url = request.getRequestURL().toString();
+
+				if (url != null) {
+
+					System.out.println("the url is:::" + url);
+					// if(url.equals("http://sce.pfizer.com/SCEWeb/PrintBlankForm")){
+					if (url.equals("http://localhost:7001/SCEWeb/printBlankFormLimited.jsp")) {
+						response.sendRedirect("printBlankFormLimited.jsp");
+					} else {
+
+					}
+				} else {// url==null
+
+					response.sendRedirect("Unauthorized.jsp");
+				}
+
+				/*
+				 * ------------------------DEXTER's LAB EXPERIMENT PART ONE
+				 * ENDS----------------------
+				 */
+
+				// out.print("no user found from DB");
+				// shindo oauth redirected after session expired
+				/*response.sendRedirect(request.getContextPath()
+						+ "/sessionExpired.jsp");*/
+
+				response.sendRedirect("Unauthorized.jsp");
+			} else {
+				// out.print(" user found from DB. set session with userid " +
+				// userid);
+				user.setEmplId(emplid);
+				session.setAttribute("user", user);
+				session.setAttribute("UserID", userid.trim().toLowerCase());
+
+				/*
+				 * ------------------------DEXTER's LAB EXPERIMENT PART TWO
+				 * STARTS----------------------
+				 */
+
+				String url = request.getRequestURL().toString();
+				if (url != null) {
+
+					System.out.println("the url is:::" + url);
+					if (url.equals("http://localhost:7001/SCEWeb/PrintBlankForm")) {
+						response.sendRedirect("PrintBlankForm.jsp");
+					} // End if(url
+
+					/*-----------------------------------DEXTER's LAB EXPERIMENT PART TWO ENDS----------------------      */
+				}
+			}
+		} else {
+			// response.sendRedirect("..\\sessionExpired.jsp");
+			String str = request.getRequestURL().toString();
+			System.out.println("url is " + str);
+			response.sendRedirect(request.getContextPath()
+					+ "/sessionExpired.jsp");
+		}
+
+		/*
+		 * String eventN = req.getParameter("whichEvent"); String startDate =
+		 * req.getParameter("strDate"); String productName =
+		 * req.getParameter("productName"); String gtEmail =
+		 * req.getParameter("GtEmail");
+		 */
+		// shindo retrieved invite attributes from session 
+		// session OAUTH release
+
+		String eventN = (String) session.getAttribute("whichEvent");
+		String startDate = (String) session.getAttribute("strDate");
+		String productName = (String) session.getAttribute("productName");
+		String gtEmail = (String) session.getAttribute("GtEmail");
+
+		System.out.println(eventN + ".." + startDate + ".." + ".."
+				+ productName + ".." + gtEmail);
+
+		String bookMarkURL = null;
+		String redirectTo = null;
+		if (gtEmail != null && gtEmail != "")
+			queryString = "whichEvent=" + eventN + "&productName="
+					+ productName + "&" + "strDate=" + startDate + "&GtEmail"
+					+ gtEmail;
+		else
+			queryString = "whichEvent=" + eventN + "&productName="
+					+ productName + "&" + "strDate=" + startDate;
+		try {
+			String result = checkLegalConsent(req, session);
+			System.out.println("*****result*****:" + result);
+			if (result != null && result.equals("success")) {
+				System.out.println("*************Forwarding to legalConsent");
+				String forwardToHomePage = "N";
+				EvaluationControllerHelper.setBookMarkURL(session, req,
+						forwardToHomePage);
+				if (queryString != null) {
+					bookMarkURL = (String) session.getAttribute("bookMarkURL");
+					redirectTo = bookMarkURL + "?" + queryString;
+					session.setAttribute("bookMarkURL", redirectTo);
+				}
+				return new String("legalConsent");
+			} else if (result != null && result.equals("exception")) {
+				System.out.println("**********Forwarding to exception");
+				return new String("failure");
+			}
+			System.out.println("EventName set As: " + eventN);
+			System.out.println("StartDate set As: " + startDate);
+			System.out.println("Product set As: " + productName);
+
+			req.setAttribute("eventName", eventN);
+			req.setAttribute("productName", productName);
+			req.setAttribute("startDate", startDate);
+			req.setAttribute("startDate", startDate);
+			if (gtEmail != null && gtEmail != "") {
+				req.setAttribute("GtEmail", gtEmail);
+			}
+
+		} catch (Exception e) {
+			req.setAttribute("errorMsg", "error.sce.unknown");
+			// sceLogger.error(LoggerHelper.getStackTrace(e));
+			return new String("failure");
+		}
+		SCEConstants.INVITE_FLAG = "N";
+		session.removeAttribute("whichEvent");
+		session.removeAttribute("productName");
+		session.removeAttribute("strDate");
+		session.removeAttribute("GtEmail");
+		return new String("success");
+
+	}
 	  
 	  
 	    public String gotoviewGTByEvent(){
-	    	//// System.out.println("inside got to view gt by event");
 	        HttpServletRequest req = getServletRequest();
 	        try{
 	        String whichEvent=req.getParameter("event");
-	       // // System.out.println(whichEvent);
 	        String whichIndex=req.getParameter("index");
 	        String whichproduct=req.getParameter("product");
 	        String prodIndex= req.getParameter("product_index");
+	        String whichBusinessUnit = req.getParameter("bu_id");
+			String whichBUIndex = req.getParameter("bu_index");
+			String[] eventNameFetch = sceManager.getEventNameByBU(whichBusinessUnit);
+			String[] eventProducts=sceManager.getEventProducts(whichEvent);
 	        System.out.println("Event: "+whichEvent+" Index: "+prodIndex+" product: "+whichproduct+" request_object: ");
-	        //// System.out.println(whichIndex);
 	        GuestTrainer[] trainers=sceManager.getGTByEvent(whichEvent,whichproduct);
+	        req.setAttribute("eventNameFetch", eventNameFetch);
+	        req.setAttribute("eventProducts",eventProducts);
 	        req.setAttribute("GTListByProduct",trainers);
 	        req.setAttribute("alreadySelectedEvent",whichIndex);
 	        req.setAttribute("alreadySelectedEvent_1",whichEvent);
 	        req.setAttribute("alreadySelectedProduct",prodIndex);
-	       
-	        //String[] test=req.getParameterValues("n_chk");
+	        req.setAttribute("alreadySelectedBUIndex",whichBUIndex);
+			req.setAttribute("alreadySelectedBU",whichBusinessUnit);
 	        }
 	        catch(SCEException scee){
 	            req.setAttribute("errorMsg",scee.getErrorCode());
 	            return new String("failure");
 	        }catch(Exception e){
 	            req.setAttribute("errorMsg","error.sce.unknown");
-	           // sceLogger.error(LoggerHelper.getStackTrace(e));
 	            return new String("failure");
 	        }
 	        return new String("success");
 	        
 	    }
-	    
+	    //added by muzees for PBG and UpJOHN to fetch events based on business unit 2019
+	    public String getBUEvents() {
+	    	try{
+			HttpServletRequest req = getRequest();
+			String whichBusinessUnit = req.getParameter("bu_id");
+			String whichBUIndex = req.getParameter("bu_index");
+			String[] eventNameFetch = sceManager.getEventNameByBU(whichBusinessUnit);
+			req.setAttribute("eventNameFetch", eventNameFetch);
+			req.setAttribute("alreadySelectedBUIndex",whichBUIndex);
+			req.setAttribute("alreadySelectedBU",whichBusinessUnit);
+	    	} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return new String("success");
+		}//end of MUZEES
 	    /**Added By ankit on 4 june**/
+	  //The below method has been updated by muzees for PGB and UpJOHN 
 	    public String getEventProduct(){
-	    	//// System.out.println("inside got to view gt by event");
 	        HttpServletRequest req = getServletRequest();
 	        try{
-	        String whichEvent=req.getParameter("event")
-	        ;
-	       // // System.out.println(whichEvent);
+	        String whichEvent=req.getParameter("event");
 	        String whichIndex=req.getParameter("index");
-	         System.out.println(whichIndex);
+	        String whichBusinessUnit = req.getParameter("bu_id");
+			String whichBUIndex = req.getParameter("bu_index");
+			String[] eventNameFetch= sceManager.getEventNameByBU(whichBusinessUnit);
 	        String[] eventProducts=sceManager.getEventProducts(whichEvent);
 	        req.setAttribute("eventProducts",eventProducts);
-	       
+	        req.setAttribute("eventNameFetch",eventNameFetch);
 	        req.setAttribute("alreadySelectedEvent",whichIndex);
-	        
-	        
-	       
-	        //String[] test=req.getParameterValues("n_chk");
+	        req.setAttribute("alreadySelectedBUIndex",whichBUIndex);
+			req.setAttribute("alreadySelectedBU",whichBusinessUnit);
+			req.setAttribute("alreadySelectedEvent_1",whichEvent);
 	        }
 	        catch(SCEException scee){
 	            req.setAttribute("errorMsg",scee.getErrorCode());
 	            return new String("failure");
 	        }catch(Exception e){
 	            req.setAttribute("errorMsg","error.sce.unknown");
-	           // sceLogger.error(LoggerHelper.getStackTrace(e));
 	            return new String("failure");
 	        }
 	        return new String("success");
@@ -448,6 +623,7 @@ ServletRequestAware{
 	       
 	        String result = legalConsentHelper.checkLegalConsent(req,session);
 	      //  // System.out.println("*****result*****:"+result);
+	        result="failure";
 	        if(result != null && result.equals("success")  ){
 	        //    // System.out.println("*************Forwarding to legalConsent");
 	            String forwardToHomePage = "Y";
@@ -556,4 +732,28 @@ ServletRequestAware{
 				}
 
 			}
+	    
+	    public String getAuthUserId(String domain, String ntid) {
+
+			String result = "";
+
+			try {
+				if (ntid.length() > 0) {
+					//domain.toUpperCase();
+					ntid.toUpperCase();
+					if (domain.length() > 0) {
+						domain.toUpperCase();
+						result = domain + "\\" + ntid;
+					} else
+						result = ntid;
+				} else {
+					result = "";
+				}
+			} catch (Exception ex) {
+				result = "";
+
+			}
+			return result;
+		}
+
 }

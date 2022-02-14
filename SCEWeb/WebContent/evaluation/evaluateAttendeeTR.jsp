@@ -119,6 +119,19 @@
     function sample(){
        // alert("here1");
     }
+  /* Start:2020 Q3:added by muzees to avoid duplicate evaluation */
+    function disableSubmit(){
+    	
+    	document.getElementById("submiteval").disabled = true;
+    	if(validateSubmit()){
+    		return true;
+    	}
+    	else {
+    		
+    		document.getElementById("submiteval").disabled = false;
+    		return false;
+    	}
+    }//end
     
     function validateSubmit() {
     
@@ -1131,7 +1144,12 @@
                     <input type="hidden" name="template_version_id" id="template_version_id" value="<%=objSCE.getTemplateVersionId()%>"/>
                     <input type="hidden" name="status" id="status" value="<%=SCEConstants.ST_SUBMITTED%>"/>
                     <%if (createMode) {%>
-                    <img src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif" style="width:55px; height:19px" onClick="return validateSubmit();" alt="Submit"></img>
+                    <%-- <img src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif" style="width:55px; height:19px" onClick="return validateSubmit();" alt="Submit"></img>2020 Q3:commented by muzees to avoid duplicate evaluation --%>
+                    <input
+							type="image" id="submiteval" alt="Submit"
+							onClick="return disableSubmit()"
+							src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif"
+							style="width: 55px; height: 19px"><!-- 2020 Q3:added by muzees to avoid duplicate evaluation- -->
         			<%}%>
                     <img src="<%=request.getContextPath()%>/evaluation/resources/_img/btn_close.gif" style="width:51px; height:19px" onClick="window.close();return false;" alt="Close Window"></img>                                      
                 </div>

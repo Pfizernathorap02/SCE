@@ -584,9 +584,9 @@
             
             var d = document.getElementById('legal_div');
             var olddiv = document.getElementById("l_" + divNum);
-            alert("about to delete the child");
+            //alert("about to delete the child");
             d.removeChild(olddiv);
-            alert("deleted the child");
+           // alert("deleted the child");
             document.getElementById('l_value').value = --deleteQuestionsCount;
             var numOfLegalQuestionsRemoved = document.getElementById('numOfLegalQuestionsRemoved').value;
             document.getElementById('numOfLegalQuestionsRemoved').value = ++numOfLegalQuestionsRemoved;
@@ -725,7 +725,8 @@
     	   var sectionElement = document.getElementById("show_legal_section"); 
             if(legalSection.checked == true){
                sectionElement.style.display = 'block';
-               if(document.getElementById("hlcCriticalFlag").value== "Y"){
+               if(document.getElementById("hlcCriticalFlag").value== "Y")
+               {
                document.getElementById("hlcCritical").checked = true;
                document.getElementById("hlcCritical").value= "Y";
                document.getElementById("hlcCriticalFlag").value= "Y";
@@ -1486,6 +1487,30 @@ function setCallSectionValues()
 	//post call section end
 	
 	
+	<% System.out.println("Legal section flag below:"+legalSectionFlag); %>
+	//legal section display start
+	
+	  var sectionElement = document.getElementById("show_legal_section"); 
+	   
+	   
+      if('<%=legalSectionFlag%>'=='Y')
+      {
+         sectionElement.style.display = 'block';
+         if(document.getElementById("hlcCriticalFlag").value== "Y"){
+         document.getElementById("hlcCritical").checked = true;
+         document.getElementById("hlcCritical").value= "Y";
+         document.getElementById("hlcCriticalFlag").value= "Y";
+         }
+         document.getElementById("legalSectionFlag").value = "Y";
+      }else{
+         sectionElement.style.display = 'none';
+         document.getElementById("legalSectionFlag").value = "N";
+      }
+	
+	
+	//legal section display end
+	
+	
 	showHIdeDiv(document.getElementById("preCallDisplaySection"),'preCall_label_div');
 	showHIdeDiv(document.getElementById("postCallDisplaySection"), 'postCall_label_div');
 	enableDisablePostCallSectionChkbox();
@@ -1697,7 +1722,7 @@ function setCallSectionValues()
 							{
 						%>
 						<input class="form_title" name="form_title" id="form_title"
-							type="text" maxlength="256"
+							type="text" maxlength="100"
 							value="<%=SCEUtils.replace(
 						SCEUtils.ifNull(templateVersion.getFormTitle(), ""),
 						"\"", "&quot;")%>" />
@@ -1707,7 +1732,7 @@ function setCallSectionValues()
 							{
 						%>
 						<input class="form_title" name="form_title" id="form_title"
-							type="text"
+							type="text"  maxlength="100"
 							value="<%=SCEUtils.replace(
 						SCEUtils.ifNull(templateVersion.getFormTitle(), ""),
 						"\"", "&quot;")%>" />
@@ -1719,11 +1744,11 @@ function setCallSectionValues()
 
 					<div>
 
-
+								<!-- value="" added for form reset and scoring system popup on select Edge release shindo -->
 						<label>Scoring System:<font color="red">*</font></label> <select
 							name="scoringSystem" width="300" style="width: 450px"
 							onChange="setScoreValues(this)">
-							<option>Select</option>
+							<option value="">Select</option>
 
 							<%
 								Set keys = scoringSystemMap.keySet();
@@ -2029,9 +2054,11 @@ function setCallSectionValues()
 											value="<%=SCEUtils.replace(
 							SCEUtils.ifNull(businessRule.getDisplayOrder(), ""),
 							"\"", "&quot;")%>" />
-
+<!--  Start: AGARWN21: For fixing the business rule issue Bug fix release 2021 -->
 										<select name="businessRule<%=m%>_numOfCriticalQuestions"
+											id="businessRule<%=m%>_numOfCriticalQuestions"
 											style="width: 35px" onChange="setValue(this)">
+											<!-- End of AGARWN21 -->
 
 											<%
 												for (int c = 1; c <= numOfCriticalQuestions; c++) {
@@ -2057,10 +2084,11 @@ function setCallSectionValues()
                                     }
                                  }
                               </script>
-
+<!-- Start: AGARWN21: For fixing the business rule issue Bug fix release 2021 -->
 										or more Critical questions with a score of <select
-											name="businessRule<%=m%>_score" style="width: 90px"
+											name="businessRule<%=m%>_score" id="businessRule<%=m%>_score" style="width: 90px"
 											onChange="setValue(this)">
+											<!-- End of AGARWN21 -->
 
 											<%
 												if (scoringSystemValues != null) {
@@ -2092,10 +2120,13 @@ function setCallSectionValues()
                                         }   
                                     }
                                  }
-                              </script>
+                                 </script>
+                                 <!--  Start: AGARWN21: For fixing the Business rule issue Bug fix release 2021 -->
 
 										equals <select name="businessRule<%=m%>_overallScore"
+											id="businessRule<%=m%>_overallScore"
 											style="width: 90px" onChange="setValue(this)">
+											<!-- End of AGARWN21 -->
 
 											<%
 												if (scoringSystemValues != null) {
@@ -2546,7 +2577,7 @@ function setCallSectionValues()
 													onclick="setHLCFlag(this)" />HLC Critical</label>
 												<div id="show_HLC_value" style="display: inline">
 													<label>HLC Value:<font color="red">*</font></label> <select
-														name="hlcValue"
+														name="hlcValue" id="hlcValue"
 														style="width: 90px; margin: 0; paddingLeft: 0"
 														onChange="setValue(this)">
 														<%

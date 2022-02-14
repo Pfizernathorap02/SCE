@@ -664,22 +664,23 @@ public class CourseMappingAction extends ActionSupport implements ServletRequest
 				//System.out.println(" User Object:" + user);
 				if (user == null) {
 					ntid = req.getHeader("IAMPFIZERUSERPFIZERNTLOGONNAME");
-					//System.out.println("Getting ntid from IAM Header ntid:" + ntid);
+					System.out.println("Getting ntid from IAM Header ntid:" + ntid);
 					String emplid = req.getHeader("IAMPFIZERUSERWORKFORCEID");
-					//System.out.println("Getting emplid from IAM Header emplid:"+ emplid);
+					System.out.println("Getting emplid from IAM Header emplid:"+ emplid);
 					String domain = req
 							.getHeader("IAMPFIZERUSERPFIZERNTDOMAINNAME");
-					//System.out.println("Getting domain from IAM Header domain:"+ domain);
+					System.out.println("Getting domain from IAM Header domain:"+ domain);
 					if (ntid == null || ntid.equals("")) {
-						//System.out.println("ntid//" + ntid + "//");
-						//System.out.println("User Object is not available in session.");
+						System.out.println("ntid//" + ntid + "//");
+						System.out.println("User Object is not available in session.");
+						
 					}
 					//System.out.println("ntid is ://" + ntid + "//");
 				} else {
-					//System.out.println("Valid User Object:" + user);
+					System.out.println("Valid User Object:" + user);
 					ntid = user.getNtid();
-					//System.out.println("User NTID IS:" + user.getNtid());
-					//System.out.println("User emplId IS:" + user.getEmplId());
+					System.out.println("User NTID IS:" + user.getNtid());
+					System.out.println("User emplId IS:" + user.getEmplId());
 				}
 
 				UserLegalConsent userLegalConsent = new UserLegalConsent();

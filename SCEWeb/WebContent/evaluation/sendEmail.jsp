@@ -196,7 +196,7 @@ function storeEmailSent()
 var toSent = '<%=toEmail%>';        
 var eventSel = '<%=event%>';
 var productSel='<%=product%>';
-document.forms[0].action="gotoConfirmEmailSent.action?toSent="+toSent+"&eventName="+eventSel"&productSel="+productSel;
+document.forms[0].action="gotoConfirmEmailSent.action?toSent="+toSent+"&eventName="+eventSel+"&productSel="+productSel;
 document.forms[0].submit();
 }
 
@@ -205,8 +205,8 @@ document.forms[0].submit();
 
 
 
-<html>
- <s:form action="gotoConfirmEmailSent" tagId="emailConfirmation">
+<html> <!-- height added for background, action URL + shindo Edge release -->
+ <s:form style="height: 100%;" action="gotoConfirmEmailSent" tagId="emailConfirmation">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="en-us" />

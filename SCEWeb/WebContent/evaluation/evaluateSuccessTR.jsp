@@ -13,9 +13,12 @@
     Attendee evalAttendee = sceManager.getAttendeeByEmplId((String)request.getAttribute("evalEmplId"));    
     String eventName = sceManager.getEventById((Integer)request.getAttribute("evalEventId")).getName();
     String status = (String)request.getAttribute("status");
-    String msg = "submitted successfully";
+    String msg = "has been submitted successfully";
     if (SCEConstants.ST_DRAFT.equalsIgnoreCase(status)) {
-        msg = "saved";
+        msg = "has been saved";
+    }
+    else if(status.equalsIgnoreCase("duplicate")){
+    	msg="is already submitted";//muzees
     }
 %>
 
@@ -64,7 +67,7 @@
                     <table>
                         <tr>
                             <td>
-                                Your evaluation for <b><%=evalAttendee.getName()%></b> has been <%=msg%>.
+                                Your evaluation for <b><%=evalAttendee.getName()%></b> <%=msg%>.
                             </td>
                         </tr>
                         <tr>

@@ -1,6 +1,13 @@
 package com.pfizer.sce.db;
 
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.security.SecureRandom;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -9,21 +16,59 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.engine.jdbc.batch.internal.BatchingBatch;
-import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
-import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.jdbc.Work;
+import org.json.JSONObject;
 
 import com.pfizer.sce.beans.Attendee;
+import com.pfizer.sce.beans.BU;
 import com.pfizer.sce.beans.BusinessRule;
 import com.pfizer.sce.beans.CourseDetails;
 import com.pfizer.sce.beans.CourseEvalTemplateMapping;
@@ -57,20 +102,99 @@ import com.pfizer.sce.beans.UploadBlankForm;
 import com.pfizer.sce.beans.User;
 import com.pfizer.sce.beans.UserLegalConsent;
 import com.pfizer.sce.beans.WebExDetails;
+import com.pfizer.sce.common.SCEConstants;
 import com.pfizer.sce.utils.HibernateUtils;
 import com.pfizer.sce.utils.SCEUtils;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import javax.mail.internet.HeaderTokenizer.Token;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+//added for oAuth shindo
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 
 public class SCEControlImpl {
 	private String result = "";
 
 	// Logger to create logs
-	static Logger log = Logger.getLogger(SCEControlImpl.class);
+	static Logger log = LogManager.getLogger(SCEControlImpl.class);
 
 	/* GADALP STARTs */
+	/*Start: AGARWN21: New function added for employee id in 2021 Bug fix release */
+	//Start of Nishtha
+	public String getempbyNTID(String ntid) {
+		Session session = HibernateUtils.getHibernateSession();
+		String res = null;
+		StringBuilder queryString = new StringBuilder();
+		try {
+			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "start of getAdhocDistributionListMember");
 
-		
-	
-	public User getUserByNTIdAndDomain(String ntid, String ntdomain) {
+			// System.out.println("quer1" + queryString);
+			queryString.append( " select u.emplid as emplId from users u where upper(u.ntid) = upper(:ntid) ");
+			String q1 = queryString.toString();
+			Query q = session.createSQLQuery(q1);
+
+			q.setParameter("ntid", ntid);
+			List list = q.list();
+
+			// System.out.println("size " + list.size());
+
+			res = (list.size() > 0) ? (String) list.get(0) : null;
+			System.out.println("emp id in control:"+res);
+
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("HelloBean Hibernatate Exception");
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return res;
+	}
+	//End of Nishtha
+
+
+	public User getUserByNTIdAndDomain(String ntid) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		List<User> userList = new ArrayList<User>();
@@ -79,21 +203,20 @@ public class SCEControlImpl {
 		List<Object> ls = new ArrayList<Object>();
 		try {
 			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-
+			/* Start:Muzees:NTDomain removed from 2020 Q2 Bug fix release */
+			/* Business unit condition added by MUZEES for PBG and UpJOHN */
 			queryString
 					.append("select  u.user_id as id, u.emplId as emplId,u.last_name as lastName, u.first_name as firstName, ")
 					.append("u.email as email, u.ntid as ntid, u.ntdomain as ntdomain, u.status as status,u.usergroup as userGroup, ")
-					.append("u.create_date as createDate,u.last_modified_date as lastModifiedDate  from users u where upper(u.ntid) = upper(:ntid) and upper(u.ntdomain) = upper(:ntdomain) ");
-
+					.append("u.create_date as createDate,u.last_modified_date as lastModifiedDate,u.BU_ID as businessUnit  from users u where upper(u.ntid) = upper(:ntid)  ");
+			// end
 			String q1 = queryString.toString();
 			Query q = session.createSQLQuery(q1);
 
 			q.setParameter("ntid", ntid);
-			q.setParameter("ntdomain", ntdomain);
-
+			// q.setParameter("ntdomain", ntdomain);
+			/* Muzees:End */
 			ls = q.list();
-
-			// System.out.println("size " + ls.size());
 			log.debug("log size " + ls.size());
 
 			Iterator<Object> it = ls.iterator();
@@ -114,13 +237,15 @@ public class SCEControlImpl {
 				user.setUserGroup((String) field[8]);
 				user.setCreateDate((Date) field[9]);
 				user.setLastModifiedDate((Date) field[10]);
+				user.setBusinessUnit((String) field[11]);
 
 				userList.add(user);
 			}
 
-			// System.out.println("New User List Array Length" + userList.size());
+			// System.out.println("New User List Array Length" +
+			// userList.size());
 			log.debug("log New User List Array Length" + userList.size());
-	
+
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
 			// "getDistributionListFilters --> HibernateException : ", e);
@@ -249,7 +374,8 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New User List Array Length"+ newListEvent.size());
+			// System.out.println("New User List Array Length"+
+			// newListEvent.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			eventArray = newListEvent.toArray(new Event[newListEvent.size()]);
 			// // System.out.println("User Array Length" + userarray.length);
@@ -371,7 +497,8 @@ public class SCEControlImpl {
 				legalConsentTempList.add(legalConsent);
 			}
 
-			// System.out.println("New User List Array Length"+ legalConsentTempList.size());
+			// System.out.println("New User List Array Length"+
+			// legalConsentTempList.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			legalConsentTemp = (legalConsentTempList.size() > 0) ? legalConsentTempList
 					.get(0) : null;
@@ -427,7 +554,8 @@ public class SCEControlImpl {
 		return res;
 	}
 
-	public TemplateVersion retrieveFirstEvalForm() throws SQLException {
+	public TemplateVersion retrieveFirstEvalForm(String formStatus)
+			throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
 
 		StringBuilder queryString = new StringBuilder();
@@ -440,20 +568,21 @@ public class SCEControlImpl {
 			// System.out.println("quer1" + queryString);
 
 			queryString
-					.append("SELECT tv.template_version_id AS id,tv.template_id AS templateId,t.name AS templateName, ")
+					.append("SELECT tv.template_version_id AS id,tv.template_id AS templateId,tv.form_title AS templateName, ")
 					.append("tv.version AS version,tv.form_title AS formTitle,tv.publish_flag AS publishFlag, ")
 					.append("tv.scoring_system_identifier AS scoringSystemIdentifier,tv.create_date AS createDate, ")
 					.append("tv.created_by AS createdBy,u.ntid AS createdByNtid  FROM sales_call.template t, ")
 					.append("sales_call.template_version tv, sales_call.users u WHERE ")
-					.append("t.template_id = tv.template_id AND tv.created_by = u.user_id(+) AND tv.form_title = 'P2L Sales Call' ")
+					.append("t.template_id = tv.template_id AND tv.created_by = u.user_id(+) AND t.hidden= :formStatus AND tv.form_title = 'P2L Sales Call' ")
 					.append("AND tv.version =(SELECT MAX (version) FROM sales_call.template_version ")
 					.append("WHERE form_title = 'P2L Sales Call' AND publish_flag = 'Y') ");
 
 			String q1 = queryString.toString();
-			// System.out.println("quer2" + queryString);
+			System.out.println("quer2" + queryString);
 
 			// Query q = session.createQuery(queryString);
 			Query q = session.createSQLQuery(q1);
+			q.setParameter("formStatus", formStatus);
 			List list = q.list();
 
 			// user = list;
@@ -480,7 +609,8 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 
 			// // System.out.println("User Array Length" + userarray.length);
@@ -502,7 +632,8 @@ public class SCEControlImpl {
 		return (newTemp.size() > 0) ? newTemp.get(0) : null;
 	}
 
-	public TemplateVersion[] retrieveEvalForm() throws SQLException {
+	public TemplateVersion[] retrieveEvalForm(String formStatus)
+			throws SQLException {
 
 		Session session = HibernateUtils.getHibernateSession();
 		TemplateVersion[] templateArray = null;
@@ -522,7 +653,7 @@ public class SCEControlImpl {
 					.append("template_version tv, users u, ")
 					.append("(select max(version) as maxVersion,form_title as formTitle from template_version ")
 					.append("where publish_flag='Y'  group by form_title) selectedTemplate  where ")
-					.append("t.template_id = tv.template_id and tv.created_by = u.user_id(+) and tv.publish_flag='Y' ")
+					.append("t.template_id = tv.template_id and tv.created_by = u.user_id(+) and tv.publish_flag='Y' AND t.hidden= :formStatus ")
 					.append("and tv.form_title!='P2L Sales Call' and t.name!='P2L Sales Call'  and ")
 					.append("tv.form_title=selectedTemplate.formTitle and t.name=selectedTemplate.formTitle ")
 					.append("and tv.version=selectedTemplate.maxVersion and tv.UPLOADED_BLANK_FILE_ID is not null ")
@@ -533,6 +664,7 @@ public class SCEControlImpl {
 
 			// Query q = session.createQuery(queryString);
 			Query q = session.createSQLQuery(q1);
+			q.setParameter("formStatus", formStatus);
 			List list = q.list();
 
 			List<TemplateVersion> newTemplateList = new ArrayList<TemplateVersion>();
@@ -563,7 +695,8 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New User List Array Length"+ newTemplateList.size());
+			// System.out.println("New User List Array Length"+
+			// newTemplateList.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			templateArray = newTemplateList
 					.toArray(new TemplateVersion[newTemplateList.size()]);
@@ -624,7 +757,8 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New User List Array Length"+ newListAttendee.size());
+			// System.out.println("New User List Array Length"+
+			// newListAttendee.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			attendeeArray = newListAttendee
 					.toArray(new Attendee[newListAttendee.size()]);
@@ -656,19 +790,27 @@ public class SCEControlImpl {
 			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
 			// "start of getAdhocDistributionListMember");
 
-			// // System.out.println("quer1" + sql);
-
+			/* 2020 Q3:Query updated by MUZEES for multiple evaluation */
 			queryString
-					.append("SELECT id, eventId, emplId, productCode, product, course, classroom, tableName, overallRating, overallScore, ")
-					.append("submittedDate, status ,uploadedDate,lmsFlag,templateVersionId FROM ((SELECT s.sce_id AS id,s.event_id as eventId, ")
-					.append("s.emplId AS emplId, s.product_cd AS productCode,s.product_name AS product,s.course_description as course,s.classroom AS classroom, ")
-					.append("s.table_name AS tableName,s.overall_rating AS overallRating,s.overall_score AS overallScore,s.submitted_date AS submittedDate, ")
-					.append("s.status AS status, s.upload_date AS uploadedDate, e.LMS_FLAG as lmsFlag,s.template_version_id as templateVersionId FROM ")
+					.append("SELECT id, eventId, emplId, productCode, product, course, classroom, tableName, overallRating, overallScore, ");
+			queryString
+					.append("submittedDate, status ,uploadedDate,lmsFlag,templateVersionId,registrationDate FROM ((SELECT s.sce_id AS id,s.event_id as eventId, ");
+			queryString
+					.append("s.emplId AS emplId, s.product_cd AS productCode,s.product_name AS product,s.course_description as course,s.classroom AS classroom, ");
+			queryString
+					.append("s.table_name AS tableName,s.overall_rating AS overallRating,s.overall_score AS overallScore,s.submitted_date AS submittedDate, ");
+			queryString
+					.append("s.status AS status, s.upload_date AS uploadedDate, e.LMS_FLAG as lmsFlag,s.template_version_id as templateVersionId,NULL AS registrationDate FROM ");
+			queryString
 					.append("SCE_FFT s ,evaluation_form_score e WHERE event_id = (case when :eventId = -1 then event_id else :eventId end) ");
 			queryString
-					.append("and emplId = :emplId and status = 'SUBMITTED' and s.sce_id = (select max(sce_id) from sce_fft where product_name = s.product_name ");
+					.append("and s.emplId = :emplId and status = 'SUBMITTED' and s.sce_id = (select max(sce_id) from sce_fft a where a.product_name = s.product_name ");
 			queryString
-					.append("and emplid = s.emplid ) and s.template_version_id=e.template_version_id and s.overall_rating=e.score_legend ) ");
+					.append("and a.emplid = s.emplid ) and s.template_version_id=e.template_version_id and s.overall_rating=e.score_legend  ");
+			queryString
+					.append("AND (s.event_id, s.emplId, s.product_cd) NOT IN (SELECT DISTINCT v.event_id, v.emplId, v.product_cd FROM v_sce_p2l_source v, lms_course_mapping lms");
+			queryString
+					.append(" WHERE v.emplId = :emplId AND v.PRODUCT_NAME = lms.lms_course_name))");
 			queryString.append("UNION");
 			queryString
 					.append("(SELECT NULL AS id, v.event_id as eventId,v.emplId AS emplId,v.product_cd AS productCode,v.product_name AS product, ");
@@ -679,9 +821,9 @@ public class SCEControlImpl {
 			queryString
 					.append("template_version where template_id=(select distinct(evaluation_template_id) from lms_course_mapping where ");
 			queryString
-					.append("lms_course_name=v.product_name))  AS templateVersionId FROM v_sce_source v,lms_course_mapping lms WHERE ");
+					.append("lms_course_name=v.product_name))  AS templateVersionId,NULL AS registrationDate FROM v_sce_source v,lms_course_mapping lms WHERE ");
 			queryString
-					.append("event_id = (case when :eventId = -1 then event_id else :eventId end) and emplId = :emplId and v.PRODUCT_NAME=lms.lms_course_name ");
+					.append("event_id = (case when :eventId = -1 then event_id else :eventId end) and v.emplId = :emplId and v.PRODUCT_NAME=lms.lms_course_name ");
 			queryString
 					.append("and (v.event_id, v.emplId, v.product_cd) NOT IN (SELECT DISTINCT s.event_id, s.emplId, s.product_cd FROM SCE_FFT s)) ");
 			queryString.append("UNION");
@@ -694,18 +836,35 @@ public class SCEControlImpl {
 			queryString
 					.append("template_version where template_id=(select distinct(evaluation_template_id) from lms_course_mapping where ");
 			queryString
-					.append("lms_course_name=v.product_name)) AS templateVersionId FROM v_sce_p2l_source v,lms_course_mapping lms WHERE ");
+					.append("lms_course_name=v.product_name)) AS templateVersionId, NULL AS registrationDate FROM v_sce_p2l_source v,lms_course_mapping lms WHERE ");
 			queryString
-					.append("event_id = (case when :eventId = -1 then event_id else :eventId end) and emplId = :emplId and v.PRODUCT_NAME=lms.lms_course_name ");
+					.append("event_id = (case when :eventId = -1 then event_id else :eventId end) and v.emplId = :emplId and v.PRODUCT_NAME=lms.lms_course_name ");
 			queryString
-					.append("and (v.event_id, v.emplId, v.product_cd) NOT IN (SELECT DISTINCT s.event_id, s.emplId, s.product_cd FROM SCE_FFT s))) ");
+					.append("and (v.event_id, v.emplId, v.product_cd) NOT IN (SELECT DISTINCT s.event_id, s.emplId, s.product_cd FROM SCE_FFT s))");
+			queryString.append("UNION");
+			queryString
+					.append("(SELECT s.sce_id AS id,v.event_id AS eventId, v.emplId AS emplId,v.product_cd AS productCode, v.product_name AS product,v.course_description AS course,");
+			queryString
+					.append("v.classroom AS classroom,v.table_name AS tableName,s.overall_rating AS overallRating,s.overall_score AS overallScore, s.submitted_date AS submittedDate,");
+			queryString
+					.append("s.status AS status,s.upload_date AS uploadedDate,e.LMS_FLAG  AS lmsFlag,(SELECT MAX (template_version_id) FROM template_version ");
+			queryString
+					.append("WHERE template_id =(SELECT DISTINCT (evaluation_template_id) FROM lms_course_mapping WHERE lms_course_name = v.product_name)) AS templateVersionId,");
+			queryString
+					.append("(SELECT MAX (REGISTRATION_DATE) FROM tr.v_usp_sce_registered p WHERE p.emplid = v.emplid AND p.ACTIVITY_PK = v.product_cd) AS registrationDate ");
+			queryString
+					.append("FROM v_sce_p2l_source v, lms_course_mapping lms, sce_fft s,evaluation_form_score e WHERE v.event_id = (CASE WHEN :eventId = -1 THEN v.event_id ELSE :eventId  END)");
+			queryString
+					.append(" AND v.emplId = :emplId AND v.PRODUCT_NAME = lms.lms_course_name AND s.emplid = v.emplid AND s.product_name = v.product_name AND s.event_id = v.event_id");
+			queryString
+					.append(" AND s.sce_id = (SELECT MAX (sce_id) FROM sce_fft a WHERE a.product_name = s.product_name AND a.emplid = s.emplid) AND  s.template_version_id=e.template_version_id AND s.overall_rating=e.score_legend))");
 			queryString
 					.append("ORDER BY eventId desc, product, id, submittedDate ");
 
 			// Query q = session.createQuery(queryString);
 
 			String sql = new String(queryString);
-			//Query q = session.createSQLQuery(sql);
+			// Query q = session.createSQLQuery(sql);
 
 			Query q = session
 					.createSQLQuery(sql)
@@ -724,10 +883,14 @@ public class SCEControlImpl {
 					.addScalar("status")
 					.addScalar("uploadedDate",
 							org.hibernate.type.TimestampType.INSTANCE)
-					.addScalar("lmsFlag").addScalar("templateVersionId");
+					.addScalar("lmsFlag")
+					.addScalar("templateVersionId")
+					.addScalar("registrationDate",
+							org.hibernate.type.TimestampType.INSTANCE);
 
 			q.setParameter("emplId", emplId);
 			q.setParameter("eventId", eventId);
+			System.out.println(q.getQueryString());
 
 			List list = q.list();
 
@@ -755,26 +918,24 @@ public class SCEControlImpl {
 				scedet.setOverallScore((field[9] != null) ? ((BigDecimal) field[9])
 						.doubleValue() : null);
 				scedet.setSubmittedDate((Date) field[10]);
-
-				// System.out.println("submitted time " + field[10]);
 				scedet.setStatus((String) field[11]);
 				scedet.setUploadedDate(((Date) field[12]));
-				// System.out.println("uploaded time " + field[12]);
-
-				scedet.setLmsFlag(field[13] != null ? ((Character) field[13])
-						.toString() : null);
+				scedet.setLmsFlag(field[13] != null ? (field[13]).toString()
+						: null);
 				scedet.setTemplateVersionId((field[14] != null) ? ((BigDecimal) field[14])
 						.intValue() : null);
-
+				scedet.setRegistrationDate(field[15] != null ? (Date) field[15]
+						: null);/*
+								 * 2020 Q3:added by MUZEES for multiple
+								 * evaluations
+								 */
 				newListSCE.add(scedet);
 
 			}
 
 			System.out
 					.println("New User List Array Length" + newListSCE.size());
-			// User[] userarray = (User[]) newListUser.toArray();
 			sceArray = newListSCE.toArray(new SCE[newListSCE.size()]);
-			// // System.out.println("User Array Length" + userarray.length);
 
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -953,19 +1114,19 @@ public class SCEControlImpl {
 
 			// System.out.println("quer1" + queryString);
 			/*
-			 * Code change done for fetching CSO employees evaluation results after clicking on employee id hyperlink
+			 * Code change done for fetching CSO employees evaluation results
+			 * after clicking on employee id hyperlink
 			 */
 			queryString
 					.append("select fe.emplId as emplId, fe.first_name as firstName, fe.last_name ")
 					.append("as lastName, fe.role_cd as roleCd,fe.bu as bu, fe.sales_group as salesOrgDesc, ")
 					.append("fe.sales_position_id as salesPositionId from  mv_field_employee_rbu fe ")
 					.append("where emplId = :emplid ")
-                    .append("UNION ")
-			        .append(" select v.empl_Id as emplId,v.first_name as firstName, v.last_name ")
-			        .append(" as lastName,v.role as roleCd,v.BUSINESS_UNIT as bu,v.SALES_ORGANISATION as salesOrgDesc,v.SALES_POSITION_ID as salesPositionId from p2l_learners v ")
-			        .append("where empl_Id =:emplid");	
-	
-	
+					.append("UNION ")
+					.append(" select v.empl_Id as emplId,v.first_name as firstName, v.last_name ")
+					.append(" as lastName,v.role as roleCd,v.BUSINESS_UNIT as bu,v.SALES_ORGANISATION as salesOrgDesc,v.SALES_POSITION_ID as salesPositionId from p2l_learners v ")
+					.append("where empl_Id =:emplid");
+
 			String q1 = queryString.toString();
 			// System.out.println("quer2" + queryString);
 
@@ -996,7 +1157,7 @@ public class SCEControlImpl {
 
 			}
 
-			 System.out.println("New User List Array Length" + newTemp.size());
+			System.out.println("New User List Array Length" + newTemp.size());
 
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -1086,7 +1247,7 @@ public class SCEControlImpl {
 		return acceptedId;
 	}
 
-	public User[] getUsersByStatus(String userStatus) {
+	public User[] getUsersByStatus(String userStatus, String userGroup) {
 
 		// System.out.println("test 1");
 		Session session = HibernateUtils.getHibernateSession();
@@ -1111,10 +1272,17 @@ public class SCEControlImpl {
 			sql += "usergroup , ";
 			sql += "create_date , ";
 			sql += "last_modified_date , ";
-			sql += "expiration_date ";
-			sql += "from users where status = :userStatus ";
+			sql += "expiration_date , ";
+			sql += "bu_id ";/* added by muzees for PBG and UpJOHN */
+			sql += "from users where usergroup = :userGroup";
+			if (!userStatus.equalsIgnoreCase("ALL")) {
+				sql += " and status = :userStatus";
+			}
+
 			/* Author: Mayank Date:07-Oct-2011 SCE Enhancement 2011 */
-			sql += "and (usergroup <> 'SCE_GuestTrainer_MGR' or usergroup is null)";
+			// sql +=
+			// "and (usergroup <> 'SCE_GuestTrainer_MGR' or usergroup is null)";
+			// //commented by muzees during PBG and Upjohn
 
 			String orderBy = "";
 			orderBy = " order by last_name asc, first_name asc";
@@ -1122,7 +1290,11 @@ public class SCEControlImpl {
 			sql = sql + orderBy;
 
 			Query q = session.createSQLQuery(sql).addEntity(User.class);
-			q.setParameter("userStatus", userStatus);
+
+			q.setParameter("userGroup", userGroup);
+			if (!userStatus.equalsIgnoreCase("ALL")) {
+				q.setParameter("userStatus", userStatus);
+			}
 
 			List list = q.list();
 
@@ -1130,8 +1302,8 @@ public class SCEControlImpl {
 			Iterator it = list.iterator();
 
 			/*
-			 * while(it.hasNext()){
-			 * // System.out.println(((User)it.next()).getName()); }
+			 * while(it.hasNext()){ //
+			 * System.out.println(((User)it.next()).getName()); }
 			 */
 
 			userArray = (User[]) list.toArray(new User[list.size()]);
@@ -1198,7 +1370,7 @@ public class SCEControlImpl {
 
 	}
 
-	public User[] getAllUsers() {
+	public User[] getAllUsers(String userGroup) {
 
 		// System.out.println("test 1");
 		Session session = HibernateUtils.getHibernateSession();
@@ -1223,10 +1395,14 @@ public class SCEControlImpl {
 			sql += "usergroup , ";
 			sql += "create_date , ";
 			sql += "last_modified_date , ";
-			sql += "expiration_date ";
-			sql += "from users where 1 = 1 ";
+			sql += "expiration_date , ";
+			sql += "bu_id ";/* added by muzees for PBG and UpJOHN */
+			sql += "from users ";
+			sql += "where usergroup =:userGroup";
 			/* Author: Mayank Date:07-Oct-2011 SCE Enhancement 2011 */
-			sql += "and (usergroup <> 'SCE_GuestTrainer_MGR' or usergroup is null)";
+			// sql +=
+			// " where 1 = 1 and (usergroup <> 'SCE_GuestTrainer_MGR' or usergroup is null)";//commented
+			// by muzees during PBG and Upjohn
 
 			String orderBy = "";
 			orderBy = " order by last_name asc, first_name asc";
@@ -1234,15 +1410,15 @@ public class SCEControlImpl {
 			sql = sql + orderBy;
 
 			Query q = session.createSQLQuery(sql).addEntity(User.class);
-
+			q.setParameter("userGroup", userGroup);
 			List list = q.list();
 
 			// System.out.println("List size is " + list.size());
 			Iterator it = list.iterator();
 
 			/*
-			 * while(it.hasNext()){
-			 * // System.out.println(((User)it.next()).getName()); }
+			 * while(it.hasNext()){ //
+			 * System.out.println(((User)it.next()).getName()); }
 			 */
 
 			userArray = (User[]) list.toArray(new User[list.size()]);
@@ -1284,8 +1460,10 @@ public class SCEControlImpl {
 						.append("usergroup , ")
 						.append("create_date , ")
 						.append("last_modified_date , ")
-						.append("to_char(expiration_date,'mm/dd/yyyy') as  expiration_date ")
+						.append("to_char(expiration_date,'mm/dd/yyyy') as  expiration_date , ")
 						// . append("expiration_date ")
+						.append("bu_id  ")
+						// added by muzees for PBG and UpJOHN
 						.append("from users ").append("where ")
 						.append("user_id = :id ");
 
@@ -1299,8 +1477,8 @@ public class SCEControlImpl {
 				// System.out.println("List size is " + list.size());
 
 				/*
-				 * while(it.hasNext()){
-				 * // System.out.println(((User)it.next()).getName()); }
+				 * while(it.hasNext()){ //
+				 * System.out.println(((User)it.next()).getName()); }
 				 */
 
 				// userArray = (User[]) list.toArray(new User[list.size()]);
@@ -1345,10 +1523,14 @@ public class SCEControlImpl {
 
 			String sql = "UPDATE users us set us.EMPLID = :emplId ,us.FIRST_NAME = :firstName, "
 					+ "us.LAST_NAME=:lastName,us.EMAIL = :email,us.NTDOMAIN=:ntdomain,us.STATUS= "
-					+ ":status,us.USERGROUP = :userGroup,us.LAST_MODIFIED_DATE = :lastModifiedDate, ";
+					+ ":status,us.USERGROUP = :userGroup,us.LAST_MODIFIED_DATE = :lastModifiedDate,us.BU_ID=:bu_id ";// bu_id
+																														// added
+																														// by
+																														// muzees
+																														// for
 			if (user.getExpirationDate() != null) {
 				sql = sql
-						+ "us.EXPIRATION_DATE =to_date( :expirationDate ,'mm/dd/yyyy')";
+						+ ",us.EXPIRATION_DATE =to_date( :expirationDate ,'mm/dd/yyyy')";
 			}
 			sql = sql
 					+ " where (us.userGroup <> 'SCE_GuestTrainer_MGR' or us.userGroup is null)"
@@ -1365,7 +1547,9 @@ public class SCEControlImpl {
 			q.setParameter("ntdomain", user.getNtdomain());
 			q.setParameter("status", user.getStatus());
 			q.setParameter("userGroup", user.getUserGroup());
-
+			q.setParameter("bu_id", user.getBusinessUnit());// added by muzees
+															// for PBG and
+															// UpJOHN
 			q.setParameter("lastModifiedDate", new Date());
 
 			/*
@@ -1475,11 +1659,11 @@ public class SCEControlImpl {
 
 			// String q1 = queryString.toString();
 			// // System.out.println("quer2" + q1);
-
+			// muzees added bu_id for PBG and UpJOHN
 			String nativeHql = "insert into users (user_id,emplId,first_name,last_name,email,ntid, "
-					+ "ntdomain,status,usergroup,create_date,last_modified_date,expiration_date "
+					+ "ntdomain,status,usergroup,create_date,last_modified_date,expiration_date,bu_id "
 					+ ") values (sq_users.nextval,:emplId,:firstName,:lastName,:email,:ntid, "
-					+ ":ntdomain,:status,:userGroup,sysdate,sysdate,to_date(:expirationDate,'mm/dd/yyyy')) ";
+					+ ":ntdomain,:status,:userGroup,sysdate,sysdate,to_date(:expirationDate,'mm/dd/yyyy'),:bu_id) ";
 
 			Transaction ts = session.beginTransaction();
 
@@ -1495,7 +1679,10 @@ public class SCEControlImpl {
 			query.setParameter("status", user.getStatus());
 			query.setParameter("userGroup", user.getUserGroup());
 			query.setParameter("expirationDate", user.getExpirationDate());
-
+			query.setParameter("bu_id", user.getBusinessUnit());// added by
+																// muzees for
+																// PBG and
+																// UpJOHN
 			int i = query.executeUpdate();
 
 			// System.out.println(" execute result set " + i);
@@ -1555,7 +1742,7 @@ public class SCEControlImpl {
 					.append("tv.postcall_label as postcallLabel, ")
 					.append("tv.precall_flag as precallFlag, ")
 					.append("tv.postcall_flag as postcallFlag, ")
-					/*Added by Ankit 27April 2016*/
+					/* Added by Ankit 27April 2016 */
 					.append("tv.TAMPLATE_TITLE as templateTitle,  ")
 					.append("tv.CALLIMAGE_FLAG as callImageDisplay,    ")
 					.append("tv.OVERALL_EVALUATION_LABLE as overallEvaluationLable,    ")
@@ -1563,15 +1750,15 @@ public class SCEControlImpl {
 					.append("POST_CALL_IMAGE as postCallImage,  ")
 					.append("CALL_LABEL_DISPLAY as callLabelDisplay,  ")
 					.append("CALL_LABEL_VALUE as callLabelValue  ")
-					/*end*/
+					/* end */
 					.append("FROM ")
 					.append("sce_fft s, ")
 					.append("template_version tv ")
 					.append("where ")
 					.append("s.template_version_id = tv.template_version_id and ")
 					.append("s.sce_id = :sceid");
-			
-			System.out.println("SCE Id is :-  "+sceId);
+
+			System.out.println("SCE Id is :-  " + sceId);
 
 			String q1 = queryString.toString();
 			// System.out.println("quer2" + queryString);
@@ -1636,29 +1823,40 @@ public class SCEControlImpl {
 
 				sce.setPrecallFlag(field[27] != null ? ((Character) field[27])
 						.toString() : null);
-				sce.setPostcallFlag(field[28] != null ? ((Character) field[28]).toString() : null);
-				
-				/*Added by Ankit 27April 2016*/
-				sce.setTemplatetitle(field[29] != null ? ((String) field[29]): "Sales Call Evaluation");
-				
-				sce.setCallImageDisplay(field[30] != null?field[30].toString().toLowerCase().trim().equals("true")?true:(field[30].toString().trim().equals("1")?true:false):true);
-				
-				sce.setOverallEvaluationLable(field[31] != null ?field[31].toString() : "Overall Sales Call Evaluation");
-				
-				sce.setPreCallImage((field[32] != null) ? (field[32].toString()) : "Y");
-				
-				sce.setPostCallImage((field[33] != null) ? (field[33].toString()) : "Y");
-				
-				sce.setCallLabelDisplay((field[34] != null) ? (field[34].toString()) :"Y");
-				
-				sce.setCallLabelValue((field[35] != null) ? (field[35].toString()) : "Call Section");
-				/*end*/
+				sce.setPostcallFlag(field[28] != null ? ((Character) field[28])
+						.toString() : null);
+
+				/* Added by Ankit 27April 2016 */
+				sce.setTemplatetitle(field[29] != null ? ((String) field[29])
+						: "Sales Call Evaluation");
+
+				sce.setCallImageDisplay(field[30] != null ? field[30]
+						.toString().toLowerCase().trim().equals("true") ? true
+						: (field[30].toString().trim().equals("1") ? true
+								: false) : true);
+
+				sce.setOverallEvaluationLable(field[31] != null ? field[31]
+						.toString() : "Overall Sales Call Evaluation");
+
+				sce.setPreCallImage((field[32] != null) ? (field[32].toString())
+						: "Y");
+
+				sce.setPostCallImage((field[33] != null) ? (field[33]
+						.toString()) : "Y");
+
+				sce.setCallLabelDisplay((field[34] != null) ? (field[34]
+						.toString()) : "Y");
+
+				sce.setCallLabelValue((field[35] != null) ? (field[35]
+						.toString()) : "Call Section");
+				/* end */
 
 				newTemp.add(sce);
 
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -1777,14 +1975,15 @@ public class SCEControlImpl {
 								.toString() : null);
 				sceDetail.setHLCCriticalValue((String) field[18]);
 
-				sceDetail.setConflictOverallScore(field[19] != null ? ((String) field[19]): null);
-				
-				
-				
+				sceDetail
+						.setConflictOverallScore(field[19] != null ? ((String) field[19])
+								: null);
+
 				newTemp.add(sceDetail);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			sceArray = newTemp.toArray(new SCEDetail[newTemp.size()]);
 
@@ -1853,7 +2052,8 @@ public class SCEControlImpl {
 				newTemp.add(descriptor);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 			descArray = newTemp.toArray(new Descriptor[newTemp.size()]);
 
@@ -1938,7 +2138,8 @@ public class SCEControlImpl {
 				newTemp.add(evaluationFormScore);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 			evalFormArray = newTemp.toArray(new EvaluationFormScore[newTemp
 					.size()]);
@@ -2006,7 +2207,8 @@ public class SCEControlImpl {
 				newTemp.add(legalQuestion);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 			legalQuestionArray = newTemp.toArray(new LegalQuestion[newTemp
 					.size()]);
@@ -2074,7 +2276,8 @@ public class SCEControlImpl {
 				newTemp.add(legalQuestionDetail);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 			legalQuestionArray = newTemp
 					.toArray(new LegalQuestionDetail[newTemp.size()]);
@@ -2148,9 +2351,6 @@ public class SCEControlImpl {
 		SCE[] sceArray = null;
 		List<SCE> sceObjList = new ArrayList<SCE>();
 
-		System.out.println("Event Id:"+eventId);
-		System.out.println("empId:"+emplId);
-		System.out.println("product Name:"+productName);
 		try {
 			queryString
 					.append("SELECT  ")
@@ -2227,15 +2427,11 @@ public class SCEControlImpl {
 					.append("product_name=:productName and ")
 					.append("(v.event_id, v.emplId, v.product_cd) NOT IN  ")
 					.append("(SELECT DISTINCT s.event_id, s.emplId, s.product_cd FROM  ")
-					.append("SCE_FFT s) ")
-					.append(") ")
-					.append(") ")
-					.append("ORDER BY ")
-					.append("submittedDate desc,id desc ");
+					.append("SCE_FFT s) ").append(") ").append(") ")
+					.append("ORDER BY ").append("id desc,submittedDate desc ");//2020 Q4:MUZESS changed the order by from  submittedDate Desc,id desc to id desc,submittedDate Desc
 
 			String q1 = queryString.toString();
 
-			System.out.println("Query Used to view evaluations:"+q1);
 			Query q = session
 					.createSQLQuery(q1)
 					.addScalar("id")
@@ -2370,7 +2566,7 @@ public class SCEControlImpl {
 					.append("tv.hlc_critical as hlcCritical, ")
 					.append("tv.LEGAL_SECTION_FLAG as legalFG, ")
 					.append("SC.SCORE_LEGEND as hlcCriticalValue, ")
-					.append("SC1.SCORE_LEGEND as conflictOverallScore,      ") 
+					.append("SC1.SCORE_LEGEND as conflictOverallScore,      ")
 					.append("tv.TAMPLATE_TITLE as Templateitle,    ")
 					.append("tv.CALLIMAGE_FLAG as callImageDisplay,    ")
 					.append("tv.OVERALL_EVALUATION_LABLE as overallEvaluationLable,    ")
@@ -2397,23 +2593,22 @@ public class SCEControlImpl {
 					.append("from lms_course_mapping where lms_course_name= :productName )and Publish_flag='Y') ")
 					.append("AND SC.SCORING_SYSTEM_IDENTIFIER(+)=TV.SCORING_SYSTEM_IDENTIFIER ")
 					.append("AND SC1.SCORING_SYSTEM_IDENTIFIER(+)=TV.SCORING_SYSTEM_IDENTIFIER ")
-					.append("order by ")
-					.append("display_order asc ");
+					.append("order by ").append("display_order asc ");
 
 			String q1 = queryString.toString();
-			
 
 			Query q = session.createSQLQuery(q1);
 
 			q.setParameter("eventId", eventId);
 			q.setParameter("course", course);
 			q.setParameter("productName", productName);
-			
-			System.out.println("query q: "+q.toString());
-			
-			System.out.println("Params"+eventId+" "+course+" "+productName);
-			
-			System.out.println("query q1: "+q.toString());
+
+			System.out.println("query q: " + q.toString());
+
+			System.out.println("Params" + eventId + " " + course + " "
+					+ productName);
+
+			System.out.println("query q1: " + q.toString());
 
 			List<Object> list = q.list();
 
@@ -2462,27 +2657,40 @@ public class SCEControlImpl {
 				sceDetail
 						.setHlcCritical(field[15] != null ? ((Character) field[15])
 								.toString() : null);
-				sceDetail.setLegalFG(field[16] != null ? ((Character) field[16]).toString() : null);
+				sceDetail
+						.setLegalFG(field[16] != null ? ((Character) field[16])
+								.toString() : null);
 				sceDetail.setHLCCriticalValue((String) field[17]);
 				sceDetail.setConflictOverallScore((String) field[18]);
-				
-				/*Added by Ankit 27 April2016*/
-				System.out.println("Template Title"+(String) field[19]);
-				
-				sceDetail.setTemplatetitle(field[19] != null ? (String) field[19] : "Sales Call Evaluation");
-				
-				sceDetail.setCallImageDisplay(field[20] != null?field[20].toString().toLowerCase().trim().equals("true")?true:(field[20].toString().trim().equals("1")?true:false):true);
-				
-				sceDetail.setOverallEvaluationLable(field[21] != null ?field[21].toString() : "Overall Sales Call Evaluation");
-				
-				sceDetail.setPreCallImage((field[22] != null) ? (field[22].toString()) : "Y");
-				
-				sceDetail.setPostCallImage((field[23] != null) ? (field[23].toString()) : "Y");
-				
-				sceDetail.setCallLabelDisplay((field[24] != null) ? (field[24].toString()) :"Y");
-				
-				sceDetail.setCallLabelValue((field[25] != null) ? (field[25].toString()) : "Call Section");
-				/*End*/
+
+				/* Added by Ankit 27 April2016 */
+				System.out.println("Template Title" + (String) field[19]);
+
+				sceDetail
+						.setTemplatetitle(field[19] != null ? (String) field[19]
+								: "Sales Call Evaluation");
+
+				sceDetail.setCallImageDisplay(field[20] != null ? field[20]
+						.toString().toLowerCase().trim().equals("true") ? true
+						: (field[20].toString().trim().equals("1") ? true
+								: false) : true);
+
+				sceDetail
+						.setOverallEvaluationLable(field[21] != null ? field[21]
+								.toString() : "Overall Sales Call Evaluation");
+
+				sceDetail.setPreCallImage((field[22] != null) ? (field[22]
+						.toString()) : "Y");
+
+				sceDetail.setPostCallImage((field[23] != null) ? (field[23]
+						.toString()) : "Y");
+
+				sceDetail.setCallLabelDisplay((field[24] != null) ? (field[24]
+						.toString()) : "Y");
+
+				sceDetail.setCallLabelValue((field[25] != null) ? (field[25]
+						.toString()) : "Call Section");
+				/* End */
 				sceObjList.add(sceDetail);
 			}
 
@@ -2680,13 +2888,14 @@ public class SCEControlImpl {
 
 			Transaction ts = session.beginTransaction();
 
-			/*Query query = session
-					.createSQLQuery("call SP_FFT_AUTOCREDIT_UI(:emplId,:eventId,:productCode,:product,:course,:classroom,:tableName,:submittedByEmplId)");
-*/			
+			/*
+			 * Query query = session .createSQLQuery(
+			 * "call SP_FFT_AUTOCREDIT_UI(:emplId,:eventId,:productCode,:product,:course,:classroom,:tableName,:submittedByEmplId)"
+			 * );
+			 */
 			Query query = session
 					.createSQLQuery("call SP_FFT_AUTOCREDIT_UI(:emplId,:productCode,:product,:course,:classroom,:tableName,:submittedByEmplId ,:eventId)");
 
-			
 			query.setParameter("emplId", emplId);
 			query.setParameter("eventId", eventId);
 			query.setParameter("productCode", productCode);
@@ -2766,9 +2975,9 @@ public class SCEControlImpl {
 
 	public Event getEventById(Integer eventId) {
 
-		//// System.out.println("test 1");
+		// // System.out.println("test 1");
 		Session session = HibernateUtils.getHibernateSession();
-		//// System.out.println("test 2");
+		// // System.out.println("test 2");
 		Event event = null;
 
 		try {
@@ -2867,7 +3076,8 @@ public class SCEControlImpl {
 				attendeeList.add(attendee);
 			}
 
-			// System.out.println("New User List Array Length"+ attendeeList.size());
+			// System.out.println("New User List Array Length"+
+			// attendeeList.size());
 			attendeeArray = attendeeList.toArray(new Attendee[attendeeList
 					.size()]);
 
@@ -2967,7 +3177,8 @@ public class SCEControlImpl {
 				attendeeList.add(attendee);
 			}
 
-			// System.out.println("New User List Array Length"+ attendeeList.size());
+			// System.out.println("New User List Array Length"+
+			// attendeeList.size());
 			attendeeArray = attendeeList.toArray(new Attendee[attendeeList
 					.size()]);
 
@@ -3191,7 +3402,8 @@ public class SCEControlImpl {
 				newTemp.add(sceDetail);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			sceArray = newTemp.toArray(new SCEDetail[newTemp.size()]);
 
@@ -3264,7 +3476,8 @@ public class SCEControlImpl {
 				userList.add(user);
 			}
 
-			// System.out.println("New User List Array Length" + userList.size());
+			// System.out.println("New User List Array Length" +
+			// userList.size());
 
 			// log.debug("log New User List Array Length" + userList.size());
 			// User[] userarray = (User[]) newListUser.toArray();
@@ -3346,11 +3559,11 @@ public class SCEControlImpl {
 						.setPublishFlag(field[6] != null ? ((Character) field[6])
 								.toString() : null);
 
-
 				emailList.add(emailTemplate);
 			}
 
-			// System.out.println("New User List Array Length" + emailList.size());
+			// System.out.println("New User List Array Length" +
+			// emailList.size());
 
 			// log.debug("log New User List Array Length" + userList.size());
 			// User[] userarray = (User[]) newListUser.toArray();
@@ -3415,9 +3628,8 @@ public class SCEControlImpl {
 					.append("s.emplId = :emplId and ")
 					.append("s.event_id = :eventId and ")
 					.append("s.product_cd = :productCode and ")
-					.append("status = :status and ")
-					.append("s.submitted_date =  ").append("( ")
-					.append("select max(submitted_date) from  ")
+					.append("status = :status and ").append("s.sce_id =  ")
+					.append("( ").append("select max(sce_id) from  ")
 					.append("sce_fft s where ").append("emplId = :emplId and ")
 					.append("event_id = :eventId and ")
 					.append("product_cd = :productCode and ")
@@ -3486,7 +3698,8 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -3958,7 +4171,8 @@ public class SCEControlImpl {
 				newTemp.add(evaluationFormScore);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 
 			// evalFormArray = newTemp.toArray(new
 			// EvaluationFormScore[newTemp.size()]);
@@ -4106,7 +4320,8 @@ public class SCEControlImpl {
 				newTemp.add(scoringSystemObj);
 			}
 
-			// System.out.println("New User List Array Length" + newTemp.size());
+			// System.out.println("New User List Array Length" +
+			// newTemp.size());
 			// User[] userarray = (User[]) newListUser.toArray();
 			scoringSystem = newTemp.toArray(new ScoringSystem[newTemp.size()]);
 
@@ -4256,14 +4471,14 @@ public class SCEControlImpl {
 	 * // // System.out.println("Us "+ es.length());
 	 * 
 	 * 
-	 * if(es != null){ // System.out.println("User name " + es.getId());
-	 * // System.out.println("User name " + es.getTemplateVersionId());}
+	 * if(es != null){ // System.out.println("User name " + es.getId()); //
+	 * System.out.println("User name " + es.getTemplateVersionId());}
 	 * 
 	 * 
 	 * 
-	 * // System.out.println("User name " + user.getLastName());
-	 * // System.out.println("User name " + user.getFirstName());
-	 * // System.out.println("User name " + user.getEmail());
+	 * // System.out.println("User name " + user.getLastName()); //
+	 * System.out.println("User name " + user.getFirstName()); //
+	 * System.out.println("User name " + user.getEmail());
 	 * 
 	 * 
 	 * EventsCreated eventsCreated = new EventsCreated();
@@ -4464,13 +4679,52 @@ public class SCEControlImpl {
 		StringBuilder queryString = new StringBuilder();
 		Learner[] result = null;
 		try {
-			
+
 			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-			
-			
+
 			/* edited on 2/2/2016 */
 
-			/*queryString
+			/*
+			 * queryString .append(
+			 * "(SELECT empno AS empno, first_name AS firstname, last_name AS lastname,"
+			 * ); queryString
+			 * .append(" email_address AS emailaddress, LOCATION AS LOCATION,");
+			 * queryString
+			 * .append(" registration_date AS rdate, course AS course,");
+			 * queryString .append(
+			 * " course_code AS coursecode, iscoursecomplete AS iscoursecomplete,"
+			 * ); queryString.append(" course_start_date AS coursestartdate,");
+			 * queryString.append(" course_end_date AS courseenddate");
+			 * queryString.append(" FROM learners_coursecompleted");
+			 * queryString.append(" WHERE course LIKE :course"); queryString
+			 * .append(
+			 * "  AND TRUNC (course_start_date) >= TO_DATE (:frmDate, 'mm/dd/yyyy')"
+			 * ); queryString .append(
+			 * "   AND TRUNC (course_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy'))"
+			 * ); queryString.append(" UNION"); queryString .append(
+			 * "( SELECT emp_fk AS empno, emp_fname AS firstname, emp_lname AS lastname,"
+			 * ); queryString
+			 * .append(" email_address AS emailaddress, emp_state AS LOCATION,"
+			 * ); queryString
+			 * .append(" registration_date AS rdate, activityname AS course,");
+			 * queryString.append(" activity_code AS coursecode, 'N',");
+			 * queryString.append(" activity_start_date AS coursestartdate,");
+			 * queryString.append(" activity_end_date AS courseenddate");
+			 * queryString.append(" FROM p2l_reg_learners"); queryString
+			 * .append(
+			 * " WHERE TRUNC (activity_start_date) >= TO_DATE (:frmDate, 'mm/dd/yyyy')"
+			 * ); queryString .append(
+			 * " AND TRUNC (activity_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy')"
+			 * ); queryString.append(" AND activityname LIKE :course");
+			 * queryString
+			 * .append(" AND email_address NOT IN (SELECT email_address");
+			 * queryString.append(" FROM learners_coursecompleted");
+			 * queryString.append(" WHERE course LIKE :course))");
+			 */
+
+			/* edited by manish on 2/2/2016 to stop showing duplicate rows */
+			/*---------------------------------------------------------	*/
+			queryString
 					.append("(SELECT empno AS empno, first_name AS firstname, last_name AS lastname,");
 			queryString
 					.append(" email_address AS emailaddress, LOCATION AS LOCATION,");
@@ -4479,7 +4733,7 @@ public class SCEControlImpl {
 			queryString
 					.append(" course_code AS coursecode, iscoursecomplete AS iscoursecomplete,");
 			queryString.append(" course_start_date AS coursestartdate,");
-			queryString.append(" course_end_date AS courseenddate");
+			queryString.append(" course_end_date AS courseenddate,null as RN");
 			queryString.append(" FROM learners_coursecompleted");
 			queryString.append(" WHERE course LIKE :course");
 			queryString
@@ -4487,6 +4741,7 @@ public class SCEControlImpl {
 			queryString
 					.append("   AND TRUNC (course_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy'))");
 			queryString.append(" UNION");
+			queryString.append(" (SELECT * FROM ");
 			queryString
 					.append("( SELECT emp_fk AS empno, emp_fname AS firstname, emp_lname AS lastname,");
 			queryString
@@ -4495,59 +4750,27 @@ public class SCEControlImpl {
 					.append(" registration_date AS rdate, activityname AS course,");
 			queryString.append(" activity_code AS coursecode, 'N',");
 			queryString.append(" activity_start_date AS coursestartdate,");
-			queryString.append(" activity_end_date AS courseenddate");
+			queryString.append(" activity_end_date AS courseenddate,");
+			queryString
+					.append(" ROW_NUMBER () OVER (PARTITION BY email_address ORDER BY EMP_FNAME DESC) rn");
 			queryString.append(" FROM p2l_reg_learners");
 			queryString
 					.append(" WHERE TRUNC (activity_start_date) >= TO_DATE (:frmDate, 'mm/dd/yyyy')");
 			queryString
 					.append(" AND TRUNC (activity_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy')");
-			queryString.append(" AND activityname LIKE :course");
 			queryString
 					.append(" AND email_address NOT IN (SELECT email_address");
 			queryString.append(" FROM learners_coursecompleted");
-			queryString.append(" WHERE course LIKE :course))");
-			*/
-			
-			
-			
-			
-			/* edited by manish on 2/2/2016 to stop showing duplicate rows*/
-		/*---------------------------------------------------------	*/
-			queryString.append("(SELECT empno AS empno, first_name AS firstname, last_name AS lastname,");
-	queryString.append(" email_address AS emailaddress, LOCATION AS LOCATION,");
-	queryString.append(" registration_date AS rdate, course AS course,");
-	queryString.append(" course_code AS coursecode, iscoursecomplete AS iscoursecomplete,");
-	queryString.append(" course_start_date AS coursestartdate,");
-	queryString.append(" course_end_date AS courseenddate,null as RN");
-	queryString.append(" FROM learners_coursecompleted");
-	queryString.append(" WHERE course LIKE :course");
-	queryString.append("  AND TRUNC (course_start_date) >= TO_DATE (:frmDate, 'mm/dd/yyyy')");
-	queryString.append("   AND TRUNC (course_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy'))");
-	queryString.append(" UNION");
-	queryString.append(" (SELECT * FROM ");
-	queryString.append("( SELECT emp_fk AS empno, emp_fname AS firstname, emp_lname AS lastname,");
-	queryString.append(" email_address AS emailaddress, emp_state AS LOCATION,");
-	queryString.append(" registration_date AS rdate, activityname AS course,");
-	queryString.append(" activity_code AS coursecode, 'N',");
-	queryString.append(" activity_start_date AS coursestartdate,");
-	queryString.append(" activity_end_date AS courseenddate,");
-	queryString.append(" ROW_NUMBER () OVER (PARTITION BY email_address ORDER BY EMP_FNAME DESC) rn");
-	queryString.append(" FROM p2l_reg_learners");
-	queryString.append(" WHERE TRUNC (activity_start_date) >= TO_DATE (:frmDate, 'mm/dd/yyyy')");
-	queryString.append(" AND TRUNC (activity_end_date) <= TO_DATE (:toDate, 'mm/dd/yyyy')");
-	queryString.append(" AND email_address NOT IN (SELECT email_address");
-	queryString.append(" FROM learners_coursecompleted");
-	queryString.append(" WHERE course LIKE :course)");
-	queryString.append(" AND activityname LIKE :course)a");
-	queryString.append(" WHERE rn = 1)");
+			queryString.append(" WHERE course LIKE :course)");
+			queryString.append(" AND activityname LIKE :course)a");
+			queryString.append(" WHERE rn = 1)");
 
-	
-/*	----------------------------------------------------------*/
-	
+			/* ---------------------------------------------------------- */
+
 			String q1 = queryString.toString();
-			
-			System.out.println("Query Running:"+q1);
-			
+
+			System.out.println("Query Running:" + q1);
+
 			Query q = session.createSQLQuery(q1);
 			q.setParameter("course", course);
 			q.setParameter("frmDate", frmDate);
@@ -4639,7 +4862,8 @@ public class SCEControlImpl {
 			}
 			eventsCreatedArray = newEventCreatedList
 					.toArray(new EventsCreated[newEventCreatedList.size()]);
-			// System.out.println("eventsCreatedArray---->" + eventsCreatedArray);
+			// System.out.println("eventsCreatedArray---->" +
+			// eventsCreatedArray);
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
 			// "getDistributionListFilters --> HibernateException : ", e);
@@ -4690,7 +4914,6 @@ public class SCEControlImpl {
 	/* CHANGES KHATED END */
 
 	// megha start
-	
 
 	public void updateLastEventDate(String product, String trainerEmail,
 			String updateDate) throws SQLException {
@@ -4699,48 +4922,47 @@ public class SCEControlImpl {
 		StringBuilder queryString = new StringBuilder();
 
 		try {
-					// System.out.println("quer1" + queryString);
+			// System.out.println("quer1" + queryString);
 
-					queryString
-							.append("update Guest_trainer set REP_LAST_EVENT_DATE=to_date(:updateDate,'yyyy/mm/dd') where rep_email like :trainerEmail and rep_associated_product like :product ");
+			queryString
+					.append("update Guest_trainer set REP_LAST_EVENT_DATE=to_date(:updateDate,'yyyy/mm/dd') where rep_email like :trainerEmail and rep_associated_product like :product ");
 
-					String q1 = queryString.toString();
-					
-					
-					// System.out.println("quer2" + queryString);
+			String q1 = queryString.toString();
 
-					ts = session.beginTransaction();
-					Query q = session.createSQLQuery(q1);
-					q.setParameter("product", product);
-		 			q.setParameter("trainerEmail", trainerEmail);
-		 			q.setParameter("updateDate", updateDate);
+			// System.out.println("quer2" + queryString);
 
-					int result = q.executeUpdate();
+			ts = session.beginTransaction();
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("product", product);
+			q.setParameter("trainerEmail", trainerEmail);
+			q.setParameter("updateDate", updateDate);
 
-					// System.out.println("Result : " + result);
-					ts.commit();
-				} catch (HibernateException e) {
-					// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-					// "getDistributionListFilters --> HibernateException : ", e);
-					e.printStackTrace();
-					// System.out.println("acceptLegalConsent Hibernatate Exception");
-				} catch (Exception e) {
-					e.printStackTrace();
-					// System.out.println("Exception e ");
-				} finally {
+			int result = q.executeUpdate();
 
-					HibernateUtils.closeHibernateSession(session);
-				}
-			}	 
+			// System.out.println("Result : " + result);
+			ts.commit();
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("acceptLegalConsent Hibernatate Exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// System.out.println("Exception e ");
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+	}
 
 	public String getDateToUpdate(String eventName, String product,
 			String trainerEmail) throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
-	 		StringBuilder queryString = new StringBuilder();
-	 		String strings = null;
-	 		String string = new String();
-	 		List list = null;
-	 		List<String> strList = new ArrayList<String>();
+		StringBuilder queryString = new StringBuilder();
+		String strings = null;
+		String string = new String();
+		List list = null;
+		List<String> strList = new ArrayList<String>();
 		try {
 			queryString
 					.append("select * from (select REP_LAST_EVENT_DATE from guest_trainer where rep_email like :trainerEmail and rep_associated_product like :product ")
@@ -4749,38 +4971,36 @@ public class SCEControlImpl {
 					.append("order by 1 desc NULLS LAST) ")
 					.append("where rownum=1 ");
 
-	 			String q1 = queryString.toString();
-	 			// System.out.println("quer2" + queryString);
+			String q1 = queryString.toString();
+			// System.out.println("quer2" + queryString);
 
-	 			Query q = session.createSQLQuery(q1);
-	 			q.setParameter("eventName", eventName);
-	 			q.setParameter("product", product);
-	 			q.setParameter("trainerEmail", trainerEmail);
-	 		
-	 			strList = q.list();
-	 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-	 			if (strList != null) {
-	 				
-	 				strings = sdf.format(strList.get(0));
-	 			}
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("eventName", eventName);
+			q.setParameter("product", product);
+			q.setParameter("trainerEmail", trainerEmail);
 
-	 		} catch (HibernateException e) {
-	 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-	 			// "getDistributionListFilters --> HibernateException : ", e);
-	 			e.printStackTrace();
-	 			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
-	 		} catch (Exception e) {
-	 			e.printStackTrace();
-	 			// System.out.println("Exception e ");
-	 		} finally {
+			strList = q.list();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			if (strList != null) {
 
-	 			HibernateUtils.closeHibernateSession(session);
-	 		}
-	 		return strings;
-	 	}
-	
-	   
-		   
+				strings = sdf.format(strList.get(0));
+			}
+
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// System.out.println("Exception e ");
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return strings;
+	}
+
 	public String[] getProductsForEvent(String event) throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
@@ -4795,30 +5015,30 @@ public class SCEControlImpl {
 			String q1 = queryString.toString();
 			// System.out.println("quer2" + queryString);
 
-					Query q = session.createSQLQuery(q1);
-					q.setParameter("event", event);
-					strList = q.list();
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("event", event);
+			strList = q.list();
 
-					if (strList != null) {
+			if (strList != null) {
 
-						strings = strList.toArray(new String[strList.size()]);
-					}
-
-				} catch (HibernateException e) {
-					// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-					// "getDistributionListFilters --> HibernateException : ", e);
-					e.printStackTrace();
-					// System.out.println("getAttendeeByEmplId Hibernatate Exception");
-				} catch (Exception e) {
-					e.printStackTrace();
-					// System.out.println("Exception e ");
-				} finally {
-
-					HibernateUtils.closeHibernateSession(session);
-				}
-				return strings;
+				strings = strList.toArray(new String[strList.size()]);
 			}
-		 
+
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// System.out.println("Exception e ");
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return strings;
+	}
+
 	public void gotoCallProcToRevoke(String ntID, String event,
 			String selEmail, String choice) throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
@@ -4840,7 +5060,6 @@ public class SCEControlImpl {
 			q.setParameter("event", event);
 			q.setParameter("selEmail", selEmail);
 			q.setParameter("choice", choice);
-			
 
 			int result = q.executeUpdate();
 
@@ -4860,57 +5079,59 @@ public class SCEControlImpl {
 		}
 
 	}
-    /*Sanjeev begin code change validGT to accept or reject event invitation*/
-	     public String checkValidGtForInvitation(String ntid,String eventName){
-	    	 Session session = HibernateUtils.getHibernateSession();
-		 		StringBuilder queryString = new StringBuilder();
-		 		String strings = null;
-		 		String string = new String();
-		 		List list = null;
-		 		List<String> strList = new ArrayList<String>();
-		
-		 		
+
+	/* Sanjeev begin code change validGT to accept or reject event invitation */
+	public String checkValidGtForInvitation(String ntid, String eventName) {
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		String strings = null;
+		String string = new String();
+		List list = null;
+		List<String> strList = new ArrayList<String>();
+
 		try {
 			queryString
 					.append("SELECT rep_email  FROM guest_trainer_event  WHERE rep_email IN (SELECT distinct(rep_email) FROM guest_trainer WHERE UPPER(rep_ntid) LIKE UPPER(:ntid)) AND event_name LIKE :eventName and REP_EMAIL_ISSENT='Y'");
 
-		 			String q1 = queryString.toString();
-		 			// System.out.println("quer2" + queryString);
+			String q1 = queryString.toString();
+			// System.out.println("quer2" + queryString);
 
-		 			Query q = session.createSQLQuery(q1);
-		 			q.setParameter("eventName", eventName);
-		 			q.setParameter("ntid", ntid);
-		 			strList = q.list();
-		 			
-		 		//	System.out.println("list:"+strList);
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("eventName", eventName);
+			q.setParameter("ntid", ntid);
+			strList = q.list();
 
-		 			/*if (strList != null && strList.get(0)!=null) {
-		 				strings = strList.get(0).toString();
-		 			}*/
-		 			
-		 			if(!(strList.isEmpty())){
-		 				strings = strList.get(0).toString();
-		 			}
+			// System.out.println("list:"+strList);
 
-		 			
+			/*
+			 * if (strList != null && strList.get(0)!=null) { strings =
+			 * strList.get(0).toString(); }
+			 */
 
-		 		} catch (HibernateException e) {
-		 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-		 			// "getDistributionListFilters --> HibernateException : ", e);
-		 			e.printStackTrace();
-		 			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
-		 		} catch (Exception e) {
-		 			e.printStackTrace();
-		 			// System.out.println("Exception e ");
-		 		} finally {
+			if (!(strList.isEmpty())) {
+				strings = strList.get(0).toString();
+			}
 
-		 			HibernateUtils.closeHibernateSession(session);
-		 		}
-		 		return strings;
-	    	 
-	     }
-	     
-/*end sanjeev -- before public String checkInviteResponse(String ntid,String eventName)*/
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// System.out.println("Exception e ");
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return strings;
+
+	}
+
+	/*
+	 * end sanjeev -- before public String checkInviteResponse(String
+	 * ntid,String eventName)
+	 */
 	public String checkInviteResponse(String ntid, String eventName,
 			String product) {
 		Session session = HibernateUtils.getHibernateSession();
@@ -4918,8 +5139,8 @@ public class SCEControlImpl {
 		String strings = null;
 		String string = new String();
 		product = product.toUpperCase();
-	 		List list = null;
-	 		List<Character> strList = new ArrayList<Character>();
+		List list = null;
+		List<Character> strList = new ArrayList<Character>();
 		try {
 			queryString
 					.append("SELECT rep_isaccepted  FROM guest_trainer_event  WHERE rep_email IN (SELECT distinct(rep_email) FROM guest_trainer WHERE UPPER(rep_ntid) LIKE UPPER(:ntid)) AND event_name LIKE :eventName AND upper(product) = :product");
@@ -4940,23 +5161,21 @@ public class SCEControlImpl {
 				System.out.println("Value at first cell at DB level" + strings);
 			}
 
-	 		} catch (HibernateException e) {
-	 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-	 			// "getDistributionListFilters --> HibernateException : ", e);
-	 			e.printStackTrace();
-	 			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
-	 		} catch (Exception e) {
-	 			e.printStackTrace();
-	 			// System.out.println("Exception e ");
-	 		} finally {
+		} catch (HibernateException e) {
+			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+			// "getDistributionListFilters --> HibernateException : ", e);
+			e.printStackTrace();
+			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
+		} catch (Exception e) {
+			e.printStackTrace();
+			// System.out.println("Exception e ");
+		} finally {
 
-	 			HibernateUtils.closeHibernateSession(session);
-	 		}
-	 		return strings;
-	 	}
-	
-	
-	
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return strings;
+	}
+
 	public String[] getGTemailByNTID(String ntid) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
@@ -4994,7 +5213,7 @@ public class SCEControlImpl {
 		}
 		return strings;
 	}
-	
+
 	/*
 	 * Added By Ankit on 23 July To fetch Gt Ntid based on Email
 	 */
@@ -5080,95 +5299,83 @@ public class SCEControlImpl {
 	/*
 	 * Added By Manish on 2/12/2016 To Store DateTime mapping
 	 */
-	public void R(String[][] dateTimeArray, String mapId,List<Integer> hourList,String email,String event,String product) {
+	public void R(String[][] dateTimeArray, String mapId,
+			List<Integer> hourList, String email, String event, String product) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		List<Integer> strList = new ArrayList<Integer>();
 		Transaction tx = null;
 		Integer id;
-		SimpleDateFormat sdf=new SimpleDateFormat("MM/dd/yyyy");
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
 		Date d1;
-		
+
 		List<Integer> finalHourList = new ArrayList<Integer>();
 		finalHourList = hourList;
-		
-		
-		System.out.println("finalHourList2:"+finalHourList);
-		//Work in progress
-		
-		
-		
-		
-		//work in progress
-		
-//		queryString.append("SELECT MAX(ID ) FROM TRAINER_EVENT_DATETIME_SLOTS");
-//		String q1 = queryString.toString();
-//
-//		Query q = session.createSQLQuery(q1);
-//
-//		strList = q.list();
-//		if (strList != null && strList.get(0) != null) 
-//		{
-//			id = strList.get(0);	
-//		}
-//		else
-//		{
-//			id=1;
-//		}
-//		System.out.println("id="+id);
-		
+
+		System.out.println("finalHourList2:" + finalHourList);
+		// Work in progress
+
+		// work in progress
+
+		// queryString.append("SELECT MAX(ID ) FROM TRAINER_EVENT_DATETIME_SLOTS");
+		// String q1 = queryString.toString();
+		//
+		// Query q = session.createSQLQuery(q1);
+		//
+		// strList = q.list();
+		// if (strList != null && strList.get(0) != null)
+		// {
+		// id = strList.get(0);
+		// }
+		// else
+		// {
+		// id=1;
+		// }
+		// System.out.println("id="+id);
+
 		try {
 			int j = 0;
 			DateTimeSlots dt = new DateTimeSlots();
-			
-			
+
 			tx = session.beginTransaction();
-			int k=0;
-			for (int i = 0; i < dateTimeArray.length;) 
-			{
-				
-				
-				
-				if (j == 0) 
-				{
-					//dt.setId(id++);
+			int k = 0;
+			for (int i = 0; i < dateTimeArray.length;) {
+
+				if (j == 0) {
+					// dt.setId(id++);
 					dt.setMapId(Integer.parseInt(mapId));
-					d1=sdf.parse(dateTimeArray[i][0].toString());
+					d1 = sdf.parse(dateTimeArray[i][0].toString());
 					dt.setDateSel(d1);
 					j++;
-				} else 
-				{
-					
-					System.out.println("finalHourList3:"+finalHourList);
+				} else {
+
+					System.out.println("finalHourList3:" + finalHourList);
 					dt.setSlots(dateTimeArray[i][1].toString());
-					
+
 					dt.setTotalhrs(finalHourList.get(i));
 					dt.setEmail(email);
 					dt.setEvent(event);
 					dt.setProduct(product);
-				
+
 					j = 0;
 					i++;
-					//System.out.println("id is"+id);
+					// System.out.println("id is"+id);
 					session.save(dt);
-					dt=new DateTimeSlots();
+					dt = new DateTimeSlots();
 				}
-				
-				
-	         	if( i % 50 == 0 ) 
-	         	{
-	               session.flush();
-	               session.clear();
-	         	}
-	         	
+
+				if (i % 50 == 0) {
+					session.flush();
+					session.clear();
+				}
 
 			}
-			 tx.commit();
+			tx.commit();
 
 		} catch (HibernateException e) {
 			System.out.println("Method failed Due to Below reason..");
 			e.printStackTrace();
-			 tx.rollback();
+			tx.rollback();
 
 		} catch (Exception e) {
 			System.out.println("Method failed Due to Below reason..");
@@ -5186,93 +5393,79 @@ public class SCEControlImpl {
 	 * End
 	 */
 
-	
 	/*
 	 * Added By Manish on 2/12/2016 To Store DateTime mapping
 	 */
-	public void saveDateTimeSlots(String[][] dateTimeArray, String mapId,List<Integer> hourList,String email,String event,String product) throws Exception 
-	{
+	public void saveDateTimeSlots(String[][] dateTimeArray, String mapId,
+			List<Integer> hourList, String email, String event, String product)
+			throws Exception {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		List<Integer> strList = new ArrayList<Integer>();
 		Transaction tx = null;
 		Integer id;
 		Integer max_ID;
-		SimpleDateFormat sdf=new SimpleDateFormat("MM/dd/yyyy");
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
 		Date d1;
-		
+
 		List<Integer> finalHourList = new ArrayList<Integer>();
 		finalHourList = hourList;
-		
-		
-		System.out.println("finalHourList2:"+finalHourList);
-		
+
+		System.out.println("finalHourList2:" + finalHourList);
+
 		try {
 			int j = 0;
 			DateTimeSlots dt = new DateTimeSlots();
-			
+
 			tx = session.beginTransaction();
-			int k=0;
-			for (int i = 0; i < dateTimeArray.length;) 
-			{
-				
-				
-				
-				if (j == 0) 
-				{
-					//dt.setId(id++);
+			int k = 0;
+			for (int i = 0; i < dateTimeArray.length;) {
+
+				if (j == 0) {
+					// dt.setId(id++);
 					dt.setMapId(Integer.parseInt(mapId));
-					d1=sdf.parse(dateTimeArray[i][0].toString());
+					d1 = sdf.parse(dateTimeArray[i][0].toString());
 					dt.setDateSel(d1);
 					j++;
-					
-				} else 
-				{
-					
-					System.out.println("finalHourList3:"+finalHourList);
+
+				} else {
+
+					System.out.println("finalHourList3:" + finalHourList);
 					dt.setSlots(dateTimeArray[i][1].toString());
-					
+
 					dt.setTotalhrs(finalHourList.get(i));
 					dt.setEmail(email);
 					dt.setEvent(event);
 					dt.setProduct(product);
-				
+
 					j = 0;
 					i++;
-					System.out.println("id is"+dt.getId());
-					id=(Integer)session.save(dt);
-					System.out.println("id 2 is:-"+dt.getId());
-					dt=new DateTimeSlots();
+					System.out.println("id is" + dt.getId());
+					id = (Integer) session.save(dt);
+					System.out.println("id 2 is:-" + dt.getId());
+					dt = new DateTimeSlots();
 				}
-				
-				
-	         	if( i % 50 == 0 ) 
-	         	{
-	               session.flush();
-	               session.clear();
-	         	}
-	         	
+
+				if (i % 50 == 0) {
+					session.flush();
+					session.clear();
+				}
 
 			}
-			 tx.commit();
+			tx.commit();
 
-		} 
-		catch (HibernateException e) 
-		{
+		} catch (HibernateException e) {
 			System.out.println("Method failed Due to Below reason..");
 			e.printStackTrace();
 			tx.rollback();
 			throw new Exception(e.getCause());
-		}
-		catch (Exception e) 
-		{
+		} catch (Exception e) {
 			System.out.println("Method failed Due to Below reason..");
 			e.printStackTrace();
 			tx.rollback();
 			throw e;
 
-		} finally 
-		{
+		} finally {
 			HibernateUtils.closeHibernateSession(session);
 		}
 
@@ -5528,7 +5721,8 @@ public class SCEControlImpl {
 				legList.add(legalConsentTemplate);
 			}
 
-			// System.out.println("New User List Array Length" + legList.size());
+			// System.out.println("New User List Array Length" +
+			// legList.size());
 
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -5636,9 +5830,12 @@ public class SCEControlImpl {
 			// "start of getAdhocDistributionListMember");
 
 			// System.out.println("quer1" + queryString);
-			// System.out.println("content" + legalConsentTemplate.getContent());
-			// System.out.println("modifiedBy"+ legalConsentTemplate.getModifiedBy());
-			// System.out.println("version" + legalConsentTemplate.getVersion());
+			// System.out.println("content" +
+			// legalConsentTemplate.getContent());
+			// System.out.println("modifiedBy"+
+			// legalConsentTemplate.getModifiedBy());
+			// System.out.println("version" +
+			// legalConsentTemplate.getVersion());
 
 			System.out
 					.println("******Inside SCEControlImpl overWriteVersion() - Check content *****"
@@ -5681,100 +5878,98 @@ public class SCEControlImpl {
 	 * @jc:sql statement=
 	 *         "(SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted, t.REP_FNAME as fname,t.REP_LNAME as lname,  t.rep_location AS replocation,  t.rep_role AS reprole,  t.rep_associated_product AS associatedproduct, e.rep_email_issent AS repemailissent  FROM guest_trainer t JOIN event_product_course_mapping  ON product_name = rep_associated_product  LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email   and  e.EVENT_NAME like {event}   WHERE event_product_course_mapping.event_name LIKE {event} )"
 	 */
-/*Changes begin Release2*/
-	
-	/*public GuestTrainer[] getGTByEvent(String event) throws SQLException {
+	/* Changes begin Release2 */
+
+	/*
+	 * public GuestTrainer[] getGTByEvent(String event) throws SQLException {
+	 * Session session = HibernateUtils.getHibernateSession(); StringBuilder
+	 * queryString = new StringBuilder(); GuestTrainer[] guestTrainers = null;
+	 * List list = null; List<GuestTrainer> guList = new
+	 * ArrayList<GuestTrainer>(); GuestTrainer gtObj=new GuestTrainer(); String
+	 * product=gtObj.getAssociatedProduct();
+	 * System.out.println("product:"+product);
+	 * 
+	 * try { //
+	 * getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+	 * 
+	 * queryString.append(
+	 * "(SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted, t.REP_FNAME as fname,"
+	 * +
+	 * "t.REP_LNAME as lname,  t.rep_location AS replocation,  t.rep_role AS reprole,  "
+	 * +
+	 * "t.rep_associated_product AS associatedproduct, e.rep_email_issent AS repemailissent,"
+	 * + "t.REP_LAST_EVENT_DATE as lastEventDate  FROM guest_trainer t " +
+	 * "JOIN event_product_course_mapping  ON product_name = rep_associated_product  "
+	 * +
+	 * "LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email   and  e.EVENT_NAME like :event  "
+	 * +
+	 * " WHERE event_product_course_mapping.event_name LIKE :event )order by e.rep_isaccepted nulls first,"
+	 * + "t.rep_associated_product,t.rep_last_event_date nulls first ");
+	 * 
+	 * queryString .append(
+	 * "SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted,"
+	 * ) .append("t.REP_FNAME as fname,t.REP_LNAME as lname,")
+	 * .append("t.rep_location AS replocation,  t.rep_role AS reprole,")
+	 * .append("t.rep_associated_product AS associatedproduct,")
+	 * .append("e.rep_email_issent AS repemailissent  FROM guest_trainer t ")
+	 * .append(
+	 * "JOIN event_product_course_mapping ON product_name = rep_associated_product "
+	 * )
+	 * .append("LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email and "
+	 * ) .append(
+	 * "e.EVENT_NAME like :event WHERE event_product_course_mapping.event_name LIKE :event"
+	 * );
+	 * 
+	 * String q1 = queryString.toString(); // System.out.println("quer2" +
+	 * queryString);
+	 * 
+	 * Query q = session.createSQLQuery(q1); q.setParameter("event", event);
+	 * 
+	 * list = q.list(); // System.out.println("size " + list.size()); Iterator
+	 * it = list.iterator(); GuestTrainer guestTrainer = null;
+	 * 
+	 * while (it.hasNext()) { guestTrainer = new GuestTrainer(); Object[] field
+	 * = (Object[]) it.next();
+	 * 
+	 * guestTrainer.setRepEmail((String) field[0]); guestTrainer
+	 * .setIsAccepted(field[1] != null ? ((Character) field[1]) .toString() :
+	 * null); guestTrainer.setFname((String) field[2]);
+	 * guestTrainer.setLname((String) field[3]);
+	 * guestTrainer.setRepLocation((String) field[4]);
+	 * guestTrainer.setRepRole((String) field[5]);
+	 * guestTrainer.setAssociatedProduct((String) field[6]);
+	 * guestTrainer.setRepEmailIsSent((String) field[7]);
+	 * guestTrainer.setLastEventDate((Date) field[8]); //
+	 * System.out.println("rep email is sent:"+
+	 * guestTrainer.getRepEmailIsSent()); guList.add(guestTrainer);
+	 * 
+	 * } guestTrainers = guList.toArray(new GuestTrainer[guList.size()]); }
+	 * catch (HibernateException e) { //
+	 * getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY, //
+	 * "getDistributionListFilters --> HibernateException : ", e);
+	 * e.printStackTrace(); //
+	 * System.out.println("getAttendeeByEmplId Hibernatate Exception"); } catch
+	 * (Exception e) { e.printStackTrace(); //
+	 * System.out.println("Exception e "); } finally {
+	 * 
+	 * HibernateUtils.closeHibernateSession(session); }
+	 * 
+	 * return guestTrainers; }
+	 */
+
+	public GuestTrainer[] getGTByEvent(String event, String product)
+			throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		GuestTrainer[] guestTrainers = null;
 		List list = null;
 		List<GuestTrainer> guList = new ArrayList<GuestTrainer>();
-		GuestTrainer gtObj=new GuestTrainer();
-		String product=gtObj.getAssociatedProduct();
-		System.out.println("product:"+product);
-
-		try {
-			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-
-			queryString.append("(SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted, t.REP_FNAME as fname,"
-					+ "t.REP_LNAME as lname,  t.rep_location AS replocation,  t.rep_role AS reprole,  "
-					+ "t.rep_associated_product AS associatedproduct, e.rep_email_issent AS repemailissent,"
-					+ "t.REP_LAST_EVENT_DATE as lastEventDate  FROM guest_trainer t "
-					+ "JOIN event_product_course_mapping  ON product_name = rep_associated_product  "
-					+ "LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email   and  e.EVENT_NAME like :event  "
-					+ " WHERE event_product_course_mapping.event_name LIKE :event )order by e.rep_isaccepted nulls first,"
-					+ "t.rep_associated_product,t.rep_last_event_date nulls first ");
-			
-			queryString
-					.append("SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted,")
-					.append("t.REP_FNAME as fname,t.REP_LNAME as lname,")
-					.append("t.rep_location AS replocation,  t.rep_role AS reprole,")
-					.append("t.rep_associated_product AS associatedproduct,")
-					.append("e.rep_email_issent AS repemailissent  FROM guest_trainer t ")
-					.append("JOIN event_product_course_mapping ON product_name = rep_associated_product ")
-					.append("LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email and ")
-					.append("e.EVENT_NAME like :event WHERE event_product_course_mapping.event_name LIKE :event");
-
-			String q1 = queryString.toString();
-			// System.out.println("quer2" + queryString);
-
-			Query q = session.createSQLQuery(q1);
-			q.setParameter("event", event);
-
-			list = q.list();
-			// System.out.println("size " + list.size());
-			Iterator it = list.iterator();
-			GuestTrainer guestTrainer = null;
-
-			while (it.hasNext()) {
-				guestTrainer = new GuestTrainer();
-				Object[] field = (Object[]) it.next();
-
-				guestTrainer.setRepEmail((String) field[0]);
-				guestTrainer
-						.setIsAccepted(field[1] != null ? ((Character) field[1])
-								.toString() : null);
-				guestTrainer.setFname((String) field[2]);
-				guestTrainer.setLname((String) field[3]);
-				guestTrainer.setRepLocation((String) field[4]);
-				guestTrainer.setRepRole((String) field[5]);
-				guestTrainer.setAssociatedProduct((String) field[6]);
-				guestTrainer.setRepEmailIsSent((String) field[7]);
-				guestTrainer.setLastEventDate((Date) field[8]);
-				// System.out.println("rep email is sent:"+ guestTrainer.getRepEmailIsSent());
-				guList.add(guestTrainer);
-
-			}
-			guestTrainers = guList.toArray(new GuestTrainer[guList.size()]);
-		} catch (HibernateException e) {
-			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
-			// "getDistributionListFilters --> HibernateException : ", e);
-			e.printStackTrace();
-			// System.out.println("getAttendeeByEmplId Hibernatate Exception");
-		} catch (Exception e) {
-			e.printStackTrace();
-			// System.out.println("Exception e ");
-		} finally {
-
-			HibernateUtils.closeHibernateSession(session);
-		}
-
-		return guestTrainers;
-	}*/
-	
-	
-	
-	
-	public GuestTrainer[] getGTByEvent(String event,String product) throws SQLException {
-		Session session = HibernateUtils.getHibernateSession();
-		StringBuilder queryString = new StringBuilder();
-		GuestTrainer[] guestTrainers = null;
-		List list = null;
-		List<GuestTrainer> guList = new ArrayList<GuestTrainer>();
-		/*GuestTrainer gtObj=new GuestTrainer();
-		String product=gtObj.getAssociatedProduct();
-		System.out.println("product:"+product);*/
-		product= product.toUpperCase();
+		/*
+		 * GuestTrainer gtObj=new GuestTrainer(); String
+		 * product=gtObj.getAssociatedProduct();
+		 * System.out.println("product:"+product);
+		 */
+		product = product.toUpperCase();
 
 		try {
 			// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
@@ -5793,17 +5988,23 @@ public class SCEControlImpl {
 							+ "LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email   and  e.EVENT_NAME like :event and upper(e.Product) = :product "
 							+ " WHERE event_product_course_mapping.event_name LIKE :event and upper(product_name) = :product  )order by e.rep_isaccepted nulls first,"
 							+ "t.rep_associated_product,t.rep_last_event_date nulls first ");
-			
-			/*queryString
-					.append("SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted,")
-					.append("t.REP_FNAME as fname,t.REP_LNAME as lname,")
-					.append("t.rep_location AS replocation,  t.rep_role AS reprole,")
-					.append("t.rep_associated_product AS associatedproduct,")
-					.append("e.rep_email_issent AS repemailissent  FROM guest_trainer t ")
-					.append("JOIN event_product_course_mapping ON product_name = rep_associated_product ")
-					.append("LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email and ")
-					.append("e.EVENT_NAME like :event WHERE event_product_course_mapping.event_name LIKE :event");
-*/
+
+			/*
+			 * queryString .append(
+			 * "SELECT DISTINCT t.rep_email AS repemail, e.rep_isaccepted AS isaccepted,"
+			 * ) .append("t.REP_FNAME as fname,t.REP_LNAME as lname,")
+			 * .append("t.rep_location AS replocation,  t.rep_role AS reprole,")
+			 * .append("t.rep_associated_product AS associatedproduct,")
+			 * .append(
+			 * "e.rep_email_issent AS repemailissent  FROM guest_trainer t ")
+			 * .append(
+			 * "JOIN event_product_course_mapping ON product_name = rep_associated_product "
+			 * ) .append(
+			 * "LEFT JOIN guest_trainer_event e ON t.rep_email = e.rep_email and "
+			 * ) .append(
+			 * "e.EVENT_NAME like :event WHERE event_product_course_mapping.event_name LIKE :event"
+			 * );
+			 */
 			String q1 = queryString.toString();
 			System.out.println("quer2" + queryString);
 
@@ -5831,7 +6032,8 @@ public class SCEControlImpl {
 				guestTrainer.setAssociatedProduct((String) field[6]);
 				guestTrainer.setRepEmailIsSent((String) field[7]);
 				guestTrainer.setLastEventDate((Date) field[8]);
-				// System.out.println("rep email is sent:"+ guestTrainer.getRepEmailIsSent());
+				// System.out.println("rep email is sent:"+
+				// guestTrainer.getRepEmailIsSent());
 				guList.add(guestTrainer);
 
 			}
@@ -5851,11 +6053,11 @@ public class SCEControlImpl {
 
 		return guestTrainers;
 	}
-	
-	/*Changes end Release2*/
-	
-	/*Changes begin Release2*/
-	
+
+	/* Changes end Release2 */
+
+	/* Changes begin Release2 */
+
 	public String[] getEventProducts(String event) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
@@ -5894,10 +6096,9 @@ public class SCEControlImpl {
 		}
 		return strings;
 	}
-	
-	
-	/**end by ankit**/
-	/*Changes end Release2*/
+
+	/** end by ankit **/
+	/* Changes end Release2 */
 
 	public String[] getEventName() {
 		Session session = HibernateUtils.getHibernateSession();
@@ -5907,13 +6108,15 @@ public class SCEControlImpl {
 		List list = null;
 		List<String> strList = new ArrayList<String>();
 		try {
-			queryString.append("select EVENT_NAME from V_EVENT ").append(
-					"where EVENT_STATUS IN ( 'ACTIVE','INPROGRESS')");
+			queryString
+					.append("select EVENT_NAME from V_EVENT ")
+					.append("where EVENT_STATUS IN ( 'ACTIVE','INPROGRESS') ORDER BY EVENT_CREATED_ON DESC");
 
 			String q1 = queryString.toString();
 			// System.out.println("quer2" + queryString);
 
 			Query q = session.createSQLQuery(q1);
+			// q.setParameter("bu_id",businessUnit);
 			strList = q.list();
 
 			if (strList != null) {
@@ -5936,8 +6139,7 @@ public class SCEControlImpl {
 		return strings;
 	}
 
-	
-	//Added on 4june
+	// Added on 4june
 	public String[] getEventProductName(String event) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
@@ -5946,8 +6148,8 @@ public class SCEControlImpl {
 		List list = null;
 		List<String> strList = new ArrayList<String>();
 		try {
-			queryString.append("select  from event_product_course_mapping ").append(
-					"where EVENT_NAME = :event");
+			queryString.append("select  from event_product_course_mapping ")
+					.append("where EVENT_NAME = :event");
 
 			String q1 = queryString.toString();
 			// System.out.println("quer2" + queryString);
@@ -5974,9 +6176,8 @@ public class SCEControlImpl {
 		}
 		return strings;
 	}
-	
-	
-	//end
+
+	// end
 	/**
 	 * @jc:sql statement=
 	 *         "(select EVENT_START_DATE as eventStartDate,EVENT_END_DATE as eventEndDate , TYPE_OF_EVAL as typeOfEval,EVAL_DURATION as evalDuration,NUMBER_OF_EVAL as numberOfEval from V_EVENT where EVENT_NAME like {event} )"
@@ -6249,7 +6450,8 @@ public class SCEControlImpl {
 							+ "order by t.name asc,tv.version desc ");
 
 			String q1 = queryString.toString();
-			System.out.println("query to get all template versions" + queryString);
+			System.out.println("query to get all template versions"
+					+ queryString);
 
 			List<TemplateVersion> newListTemplateVersion = new ArrayList<TemplateVersion>();
 			Query q = session
@@ -6265,7 +6467,6 @@ public class SCEControlImpl {
 							org.hibernate.type.TimestampType.INSTANCE)
 					.addScalar("createdBy").addScalar("createdByNtid");
 
-			
 			List<TemplateVersion> list = q.list();
 
 			Iterator it = list.iterator();
@@ -6285,15 +6486,16 @@ public class SCEControlImpl {
 				templateVersion2
 						.setScoringSystemIdentifier(field[6].toString());
 
-				templateVersion2.setModifiedDate((Date)field[7]);
-				       
+				templateVersion2.setModifiedDate((Date) field[7]);
 
-				/*Date date;
-				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-
-				date = formatter.parse(str_date);
-
-				templateVersion2.setModifiedDate(date);*/
+				/*
+				 * Date date; SimpleDateFormat formatter = new
+				 * SimpleDateFormat("yyyy-MM-dd");
+				 * 
+				 * date = formatter.parse(str_date);
+				 * 
+				 * templateVersion2.setModifiedDate(date);
+				 */
 
 				if ((((BigDecimal) field[8]) != null)) {
 					templateVersion2.setCreatedBy(((BigDecimal) field[8])
@@ -6315,14 +6517,14 @@ public class SCEControlImpl {
 
 			}
 
-			// System.out.println("New Template version List Array Length"+ newListTemplateVersion.size());
+			// System.out.println("New Template version List Array Length"+
+			// newListTemplateVersion.size());
 
 			arraycreated = newListTemplateVersion
 					.toArray(new TemplateVersion[newListTemplateVersion.size()]);
 
-			// System.out.println("New User List Array Length"+ newListTemplateVersion.size());
-
-			
+			// System.out.println("New User List Array Length"+
+			// newListTemplateVersion.size());
 
 		} catch (HibernateException e) {
 
@@ -6357,7 +6559,6 @@ public class SCEControlImpl {
 					.append("order by score_id asc");
 
 			String q1 = queryString.toString();
-			// System.out.println("Query:   " + queryString);
 
 			List<ScoringSystem> newListScoringSystem = new ArrayList<ScoringSystem>();
 			Query q = session.createSQLQuery(q1);
@@ -6373,13 +6574,14 @@ public class SCEControlImpl {
 				scoringSystem2.setScoreId(((BigDecimal) field[0]).intValue());
 				scoringSystem2.setScoringSystemIdentifier(field[1].toString());
 				scoringSystem2.setScoreValue(field[2].toString());
-				scoringSystem2.setScoreLegend(field[2].toString());
+				scoringSystem2.setScoreLegend(field[3].toString());
 
 				newListScoringSystem.add(scoringSystem2);
 
 			}
 
-			// System.out.println("New Scoring List Array Length"+ newListScoringSystem.size());
+			// System.out.println("New Scoring List Array Length"+
+			// newListScoringSystem.size());
 
 			scoreArray = newListScoringSystem
 					.toArray(new ScoringSystem[newListScoringSystem.size()]);
@@ -6516,23 +6718,40 @@ public class SCEControlImpl {
 				templateVersion.setUploadedDate((Date) field[26]);
 				templateVersion.setUploadedBy((field[27] != null) ? (field[27]
 						.toString()) : null);
-				
-				/*Added by Ankit*/
-				
-				templateVersion.setTemplatetitle((field[28] != null) ? (field[28].toString()) : null);
-				
-				templateVersion.setCallImageDisplay((field[29] != null) ? (field[29].toString().toLowerCase().trim().equals("true")?true:(field[29].toString().trim().equals("1")?true:false)) : true);
-				
-				templateVersion.setOverallEvaluationLable((field[30] != null) ? (field[30].toString()) : "Overall Sales Call Evaluation");
-				
-				templateVersion.setPreCallImage((field[31] != null) ? (field[31].toString()) : "Y");
-				
-				templateVersion.setPostCallImage((field[32] != null) ? (field[32].toString()) : "Y");
-				
-				templateVersion.setCallLabelDisplay((field[33] != null) ? (field[33].toString()) :"Y");
-				
-				templateVersion.setCallLabelValue((field[34] != null) ? (field[34].toString()) : "Call Section");
-				/*End*/
+
+				/* Added by Ankit */
+
+				templateVersion
+						.setTemplatetitle((field[28] != null) ? (field[28]
+								.toString()) : null);
+
+				templateVersion
+						.setCallImageDisplay((field[29] != null) ? (field[29]
+								.toString().toLowerCase().trim().equals("true") ? true
+								: (field[29].toString().trim().equals("1") ? true
+										: false))
+								: true);
+
+				templateVersion
+						.setOverallEvaluationLable((field[30] != null) ? (field[30]
+								.toString()) : "Overall Sales Call Evaluation");
+
+				templateVersion
+						.setPreCallImage((field[31] != null) ? (field[31]
+								.toString()) : "Y");
+
+				templateVersion
+						.setPostCallImage((field[32] != null) ? (field[32]
+								.toString()) : "Y");
+
+				templateVersion
+						.setCallLabelDisplay((field[33] != null) ? (field[33]
+								.toString()) : "Y");
+
+				templateVersion
+						.setCallLabelValue((field[34] != null) ? (field[34]
+								.toString()) : "Call Section");
+				/* End */
 
 				templist.add(templateVersion);
 			}
@@ -6860,7 +7079,8 @@ public class SCEControlImpl {
 				emailpublishflag.add(emailTemplate);
 			}
 
-			// System.out.println("New User List Array Length"+ emailpublishflag.size());
+			// System.out.println("New User List Array Length"+
+			// emailpublishflag.size());
 
 			/*
 			 * // System.out.println("the obeject returned is " +
@@ -7028,7 +7248,8 @@ public class SCEControlImpl {
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
 			// TODO Auto-generated catch block
@@ -7054,7 +7275,8 @@ public class SCEControlImpl {
 			Query q = session.createSQLQuery(q1);
 			q.setParameter("templateId", templateId);
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getCurrentVersion2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7070,20 +7292,19 @@ public class SCEControlImpl {
 		return (((BigDecimal) list.get(0)).intValue());
 	}
 
-	public void saveTemplateVersionNew(TemplateVersion templateVersion) 
-	{
+	public void saveTemplateVersionNew(TemplateVersion templateVersion) {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		// System.out.println("saveTemplateVersionNew");
 		// System.out.println("quer1" + queryString);
 		try {
-			
-				templateVersion.setCreateDate(new Date());
-				templateVersion.setModifiedDate(new Date());
-			
-				Transaction ts = session.beginTransaction();
 
-				session.persist(templateVersion);
+			templateVersion.setCreateDate(new Date());
+			templateVersion.setModifiedDate(new Date());
+
+			Transaction ts = session.beginTransaction();
+
+			session.persist(templateVersion);
 
 			ts.commit();
 			// System.out.println("saveTemplateVersionNew2");
@@ -7212,8 +7433,8 @@ public class SCEControlImpl {
 			String q1 = queryString.toString();
 			Query q = session.createQuery(q1);
 			q.setParameter("templateVersionId", templateVersionId);
-			Integer result= q.executeUpdate();
-			System.out.println("result"+result);
+			Integer result = q.executeUpdate();
+			System.out.println("result" + result);
 			ts.commit();
 			// System.out.println("deleteQuestions2");
 		} catch (HibernateException e) {
@@ -7237,7 +7458,8 @@ public class SCEControlImpl {
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getNextTemplateId2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7324,7 +7546,8 @@ public class SCEControlImpl {
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getNextLegalQuestionId2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7338,8 +7561,7 @@ public class SCEControlImpl {
 		return (((BigDecimal) list.get(0)).intValue());
 	}
 
-	public void saveBusinessRule(BusinessRule businessRule)
-	{
+	public void saveBusinessRule(BusinessRule businessRule) {
 		// System.out.println("saveBusinessRule1");
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
@@ -7394,7 +7616,8 @@ public class SCEControlImpl {
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getNextEvaluationFormScoreId2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7497,7 +7720,7 @@ public class SCEControlImpl {
 			throws SQLException {
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
-System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
+		System.out.println("modifiedBy " + templateVersion.getCreatedByNtid());
 		Transaction ts = session.beginTransaction();
 		try {
 			// System.out.println("updateTemplateVersion1");
@@ -7548,13 +7771,17 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			q.setParameter("templateId", templateVersion.getTemplateId());
 			q.setParameter("version", templateVersion.getVersion());
 			q.setParameter("templatetitle", templateVersion.getTemplatetitle());
-			q.setParameter("CALLIMAGE_FLAG",(templateVersion.isCallImageDisplay()==true?"true":"false"));
-			q.setParameter("overallEvaluationLable",templateVersion.getOverallEvaluationLable());
+			q.setParameter("CALLIMAGE_FLAG", (templateVersion
+					.isCallImageDisplay() == true ? "true" : "false"));
+			q.setParameter("overallEvaluationLable",
+					templateVersion.getOverallEvaluationLable());
 			q.setParameter("PRE_CALL_IMAGE", templateVersion.getPreCallImage());
-			q.setParameter("POST_CALL_IMAGE",templateVersion.getPostCallImage());
-			q.setParameter("CALL_LABEL_DISPLAY", templateVersion.getCallLabelDisplay());
-			q.setParameter("CALL_LABEL_VALUE", templateVersion.getCallLabelValue());
-			
+			q.setParameter("POST_CALL_IMAGE",
+					templateVersion.getPostCallImage());
+			q.setParameter("CALL_LABEL_DISPLAY",
+					templateVersion.getCallLabelDisplay());
+			q.setParameter("CALL_LABEL_VALUE",
+					templateVersion.getCallLabelValue());
 
 			int result = q.executeUpdate();
 
@@ -7581,7 +7808,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getNextBusinessRuleId2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7654,7 +7882,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			// System.out.println("getNextQuestionId2");
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
@@ -7702,25 +7931,22 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 	public void uploadBlankForm(UploadBlankForm uploadBlankForm)
 			throws SQLException {/*
-		Session session = HibernateUtils.getHibernateSession();
-		StringBuilder queryString = new StringBuilder();
-		try {
-			// System.out.println("quer1" + queryString);
-
-			Transaction ts = session.beginTransaction();
-
-			session.persist(uploadBlankForm);
-
-			ts.commit();
-		} catch (HibernateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			HibernateUtils.closeHibernateSession(session);
-		}
-
-	*/
-
+								 * Session session =
+								 * HibernateUtils.getHibernateSession();
+								 * StringBuilder queryString = new
+								 * StringBuilder(); try { //
+								 * System.out.println("quer1" + queryString);
+								 * 
+								 * Transaction ts = session.beginTransaction();
+								 * 
+								 * session.persist(uploadBlankForm);
+								 * 
+								 * ts.commit(); } catch (HibernateException e) {
+								 * // TODO Auto-generated catch block
+								 * e.printStackTrace(); } finally {
+								 * HibernateUtils
+								 * .closeHibernateSession(session); }
+								 */
 
 		Session session = HibernateUtils.getHibernateSession();
 
@@ -7734,10 +7960,9 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 					.append("UPLOADED_BLANK_FILE  ").append(") ")
 					.append("VALUES ").append("( ").append(":fileId, ")
 					.append(":versionId, ").append(":content ").append(")");
-					
 
 			String nativeHql = queryString.toString();
-			System.out.println(""+nativeHql);
+			System.out.println("" + nativeHql);
 			Transaction ts = session.beginTransaction();
 			Query query = session.createSQLQuery(nativeHql);
 
@@ -7747,18 +7972,21 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 					uploadBlankForm.getTemplateVersionId());
 			query.setParameter("content",
 					uploadBlankForm.getUploadedBlankFile());
-			
-/*			query.setParameter("evaluationDate", evalForm.getEvaluationDate());
-			query.setParameter("uploadDate", evalForm.getUploadDate());
-			query.setParameter("product", evalForm.getProduct());
 
-			query.setParameter("repEmplid", evalForm.getRepEmplid());
-			query.setParameter("eventId", evalForm.getEventId());
-			query.setParameter("templateVersionId",
-					evalForm.getTemplateVersionId());
-
-			query.setParameter("productCode", evalForm.getProductCode());
-			query.setParameter("status", evalForm.getStatus());*/
+			/*
+			 * query.setParameter("evaluationDate",
+			 * evalForm.getEvaluationDate()); query.setParameter("uploadDate",
+			 * evalForm.getUploadDate()); query.setParameter("product",
+			 * evalForm.getProduct());
+			 * 
+			 * query.setParameter("repEmplid", evalForm.getRepEmplid());
+			 * query.setParameter("eventId", evalForm.getEventId());
+			 * query.setParameter("templateVersionId",
+			 * evalForm.getTemplateVersionId());
+			 * 
+			 * query.setParameter("productCode", evalForm.getProductCode());
+			 * query.setParameter("status", evalForm.getStatus());
+			 */
 
 			int i = query.executeUpdate();
 
@@ -7778,9 +8006,6 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			HibernateUtils.closeHibernateSession(session);
 		}
 
-		
-	
-	
 	}
 
 	public void publishEvaluationTemplate(UploadBlankForm uploadBlankForm)
@@ -7846,25 +8071,24 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			Query q = session.createSQLQuery(q1);
 			q.setParameter("scoringSystemIdentifier", scoringSystemIdentifier);
 			q.setParameter("templateName", templateName);
-			
+
 			List list = q.list();
 			// System.out.println("size " + list.size());
 			Iterator it = list.iterator();
 
-			while (it.hasNext()) 
-			{
+			while (it.hasNext()) {
 				emailtemplate = new EmailTemplate();
-				//Object[] field =  it.next();
+				// Object[] field = it.next();
 				emailtemplate.setScoringSystemIdentifier(it.next().toString());
 				emaillist.add(emailtemplate);
 
 			}
 
-			// System.out.println("New User List Array Length" + emaillist.size());
+			// System.out.println("New User List Array Length" +
+			// emaillist.size());
 
-			emailtemplate = emaillist.size()>0? emaillist.get(0):null;
+			emailtemplate = emaillist.size() > 0 ? emaillist.get(0) : null;
 
-			
 		} catch (HibernateException e) {
 			// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
 			// "getDistributionListFilters --> HibernateException : ", e);
@@ -7890,7 +8114,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			Query q = session.createSQLQuery(q1);
 
 			list = q.list();
-			// System.out.println("the value is"+ (((BigDecimal) list.get(0)).intValue()));
+			// System.out.println("the value is"+ (((BigDecimal)
+			// list.get(0)).intValue()));
 			return (((BigDecimal) list.get(0)).intValue());
 		} catch (HibernateException e) {
 			// TODO Auto-generated catch block
@@ -7974,47 +8199,50 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 	// madhuri end
 	// Apoorva start
 
-	 
-	
-	/*public void insertSCEComment(String sceid,String activity_id,String phaseNo,String rep_id,String comment1,String comment2,String comment3,String enteredby1,String enteredby2,String enteredby3,String date1,String date2,String date3,String submitted_by,String submitted_date)throws SCEException {
-		// SCEControlImpl sceControl=new SCEControlImpl();
-		Session session = HibernateUtils.getHibernateSession();
-		CourseEvalTemplateMapping[] mappingsForTemplates = null;
-		Transaction ts = null;
-		StringBuilder queryString = new StringBuilder();
+	/*
+	 * public void insertSCEComment(String sceid,String activity_id,String
+	 * phaseNo,String rep_id,String comment1,String comment2,String
+	 * comment3,String enteredby1,String enteredby2,String enteredby3,String
+	 * date1,String date2,String date3,String submitted_by,String
+	 * submitted_date)throws SCEException { // SCEControlImpl sceControl=new
+	 * SCEControlImpl(); Session session = HibernateUtils.getHibernateSession();
+	 * CourseEvalTemplateMapping[] mappingsForTemplates = null; Transaction ts =
+	 * null; StringBuilder queryString = new StringBuilder();
+	 * 
+	 * List<CourseEvalTemplateMapping> attendeeList = new
+	 * ArrayList<CourseEvalTemplateMapping>();
+	 * 
+	 * try {
+	 * 
+	 * queryString.append("update sce_comments set comment_1 = "+comment1+
+	 * ",comment_2 = "+comment2+",comment_3 = "+comment3+", ")
+	 * .append("entered_by_1 = "
+	 * +enteredby1+",entered_by_2 = "+enteredby2+",entered_by_3 = "
+	 * +enteredby3+", ")
+	 * .append("date_1 = "+date1+",date_2 = "+date2+",date_3 = "
+	 * +date3+",submitted_by = "+submitted_by+", ")
+	 * .append("submitted_date ="+submitted_date
+	 * +" where sce_id ="+sceid+" and phase_no ="
+	 * +phaseNo+" and representative_id ="+rep_id+" ");
+	 * 
+	 * String q1 = queryString.toString();
+	 * 
+	 * // System.out.println("quer2" + queryString); Query q =
+	 * session.createSQLQuery(q1);
+	 * 
+	 * 
+	 * // Query q = //
+	 * session.createSQLQuery(q1).addEntity(CourseEvalTemplateMapping.class); ts
+	 * = session.beginTransaction(); int result = q.executeUpdate();
+	 * ts.commit(); // System.out.println("deleted" + result);
+	 * 
+	 * } catch (Exception e) { // log.error(LoggerHelper.getStackTrace(e));
+	 * e.printStackTrace(); throw new SCEException("error.sce.unknown", e); }
+	 * finally { HibernateUtils.closeHibernateSession(session); }
+	 * 
+	 * }
+	 */
 
-		List<CourseEvalTemplateMapping> attendeeList = new ArrayList<CourseEvalTemplateMapping>();
-
-		try {
-		
-			queryString.append("update sce_comments set comment_1 = "+comment1+",comment_2 = "+comment2+",comment_3 = "+comment3+", ")
-				.append("entered_by_1 = "+enteredby1+",entered_by_2 = "+enteredby2+",entered_by_3 = "+enteredby3+", ")
-					.append("date_1 = "+date1+",date_2 = "+date2+",date_3 = "+date3+",submitted_by = "+submitted_by+", ")
-					.append("submitted_date ="+submitted_date+" where sce_id ="+sceid+" and phase_no ="+phaseNo+" and representative_id ="+rep_id+" ");
-
-			String q1 = queryString.toString();
-
-			// System.out.println("quer2" + queryString);
-			Query q = session.createSQLQuery(q1);
-			
-
-			// Query q =
-			// session.createSQLQuery(q1).addEntity(CourseEvalTemplateMapping.class);
-			ts = session.beginTransaction();
-			int result = q.executeUpdate();
-			ts.commit();
-			// System.out.println("deleted" + result);
-
-		} catch (Exception e) {
-			// log.error(LoggerHelper.getStackTrace(e));
-			e.printStackTrace();
-			throw new SCEException("error.sce.unknown", e);
-		} finally {
-			HibernateUtils.closeHibernateSession(session);
-		}
-
-	}*/
-	
 	public void updateSCEComment(String sceid, String activity_id,
 			String phaseNo, String rep_id, String comment1, String comment2,
 			String comment3, String enteredby1, String enteredby2,
@@ -8029,15 +8257,16 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<CourseEvalTemplateMapping> attendeeList = new ArrayList<CourseEvalTemplateMapping>();
 
 		try {
-		
-			queryString.append("update sce_comments set comment_1 =:comment1,comment_2 =:comment2,comment_3 =:comment3, ")
-				.append("entered_by_1 =:enteredby1,entered_by_2 =:enteredby2,entered_by_3 =:enteredby3, ")
+
+			queryString
+					.append("update sce_comments set comment_1 =:comment1,comment_2 =:comment2,comment_3 =:comment3, ")
+					.append("entered_by_1 =:enteredby1,entered_by_2 =:enteredby2,entered_by_3 =:enteredby3, ")
 					.append("date_1 =:date1,date_2 =:date2,date_3 =:date3,submitted_by =:submitted_by, ")
 					.append("submitted_date =:submitted_date where sce_id =:sceid and phase_no =:phaseNo and representative_id =:rep_id ");
 
 			String q1 = queryString.toString();
 
-			 System.out.println("quer2" + queryString);
+			System.out.println("quer2" + queryString);
 			Query q = session.createSQLQuery(q1);
 			q.setParameter("comment1", comment1);
 			q.setParameter("comment2", comment2);
@@ -8071,8 +8300,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 	}
 
-	
-	public SCEComment getExistingSCEComment(String phaseId,String sceId,String repId) throws SQLException, SCEException
+	public SCEComment getExistingSCEComment(String phaseId, String sceId,
+			String repId) throws SQLException, SCEException
 
 	{
 
@@ -8083,8 +8312,7 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<SCEComment> sceCommentList = new ArrayList<SCEComment>();
 
 		try {
-			
-			
+
 			queryString
 					.append("select sce_id as sceId,activity_id as activityId,phase_no as phaseNo,representative_id as reprenstativeName, ")
 					.append("comment_1 as comment1,comment_2 as comment2,comment_3 as comment3,entered_by_1 as enteredBy1,entered_by_2 as enteredBy2,entered_by_3 as enteredBy3, ")
@@ -8094,11 +8322,11 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 			String q1 = queryString.toString();
 
-			 System.out.println("quer2" + queryString);
+			System.out.println("quer2" + queryString);
 			Query q = session.createSQLQuery(q1);
-			 q.setParameter("phaseId",phaseId);
-			 q.setParameter("sceId",sceId);
-			 q.setParameter("repId",repId);
+			q.setParameter("phaseId", phaseId);
+			q.setParameter("sceId", sceId);
+			q.setParameter("repId", repId);
 
 			List list = q.list();
 			// System.out.println("size " + list.size());
@@ -8131,8 +8359,7 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 				sceCommentList.add(scecomment);
 
 			}
-			//sceComment = sceCommentList;
-			
+			// sceComment = sceCommentList;
 
 		} catch (Exception e) {
 			// log.error(LoggerHelper.getStackTrace(e));
@@ -8143,13 +8370,13 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		}
 		return (sceCommentList.size() > 0) ? sceCommentList.get(0) : null;
 	}
-	
-	public Integer isSCEComment(String phaseId,String sceId,String repId) throws SQLException, SCEException {
+
+	public Integer isSCEComment(String phaseId, String sceId, String repId)
+			throws SQLException, SCEException {
 		Session session = HibernateUtils.getHibernateSession();
-		
+
 		Integer result = 0;
 		StringBuilder queryString = new StringBuilder();
-		
 
 		try {
 
@@ -8164,10 +8391,11 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			q.setParameter("phaseId", phaseId);
 			q.setParameter("sceId", sceId);
 			q.setParameter("repId", repId);
-		
+
 			List list = q.list();
-			
-			result = (list.size() > 0) ? ((BigDecimal) list.get(0)).intValue() : null;
+
+			result = (list.size() > 0) ? ((BigDecimal) list.get(0)).intValue()
+					: null;
 
 		} catch (Exception e) {
 			// log.error(LoggerHelper.getStackTrace(e));
@@ -8178,8 +8406,9 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		}
 		return result;
 	}
-	
-	public SCEComment[] getSCEComment(String trackid,String repid) throws SQLException, SCEException
+
+	public SCEComment[] getSCEComment(String trackid, String repid)
+			throws SQLException, SCEException
 
 	{
 
@@ -8190,7 +8419,7 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<SCEComment> sceCommentList = new ArrayList<SCEComment>();
 
 		try {
-			
+
 			queryString
 					.append("select sce_id as sceId,activity_id as activityId,phase_no as phaseNo,representative_id as reprenstativeName, ")
 					.append("comment_1 as comment1,comment_2 as comment2,comment_3 as comment3,entered_by_1 as enteredBy1,entered_by_2 as enteredBy2,entered_by_3 as enteredBy3, ")
@@ -8200,10 +8429,10 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 			String q1 = queryString.toString();
 
-			 System.out.println("quer 2" + queryString);
+			System.out.println("quer 2" + queryString);
 			Query q = session.createSQLQuery(q1);
-			 q.setParameter("trackid",trackid);
-			 q.setParameter("repid",repid);
+			q.setParameter("trackid", trackid);
+			q.setParameter("repid", repid);
 
 			List list = q.list();
 			// System.out.println("size " + list.size());
@@ -8236,7 +8465,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 				sceCommentList.add(scecomment);
 
 			}
-			sceComment = sceCommentList.toArray(new SCEComment[sceCommentList.size()]);
+			sceComment = sceCommentList.toArray(new SCEComment[sceCommentList
+					.size()]);
 
 		} catch (Exception e) {
 			// log.error(LoggerHelper.getStackTrace(e));
@@ -8247,51 +8477,49 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		}
 		return sceComment;
 	}
-	
-	
-		public String getSceFeedbackId(String trackid) throws SCEException
 
-		{
-			
-			Session session = HibernateUtils.getHibernateSession();
-			String trackId = null;
-			
-			StringBuilder queryString = new StringBuilder();
+	public String getSceFeedbackId(String trackid) throws SCEException
 
-			List<String> trackIdList = new ArrayList<String>();
+	{
 
-			try {
+		Session session = HibernateUtils.getHibernateSession();
+		String trackId = null;
 
-				queryString
-						.append("select sce_id from feedback_track_mapping where track_id=:trackid ");
+		StringBuilder queryString = new StringBuilder();
 
-				String q1 = queryString.toString();
+		List<String> trackIdList = new ArrayList<String>();
 
-				// System.out.println("quer2" + queryString);
-				Query q = session.createSQLQuery(q1);
-				q.setParameter("trackid", trackid);
-				List list = q.list();
+		try {
 
-				// System.out.println("size " + list.size());
-				
-				if(list.size() >0){
-					trackId = (String) list.get(0);
-				}
+			queryString
+					.append("select sce_id from feedback_track_mapping where track_id=:trackid ");
 
-				//trackIdList.addAll(list);
+			String q1 = queryString.toString();
 
-				//trackId = trackIdList.toString();
+			// System.out.println("quer2" + queryString);
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("trackid", trackid);
+			List list = q.list();
 
-			} catch (Exception e) {
-				// log.error(LoggerHelper.getStackTrace(e));
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			} finally {
-				HibernateUtils.closeHibernateSession(session);
+			// System.out.println("size " + list.size());
+
+			if (list.size() > 0) {
+				trackId = (String) list.get(0);
 			}
-			return trackId;
+
+			// trackIdList.addAll(list);
+
+			// trackId = trackIdList.toString();
+
+		} catch (Exception e) {
+			// log.error(LoggerHelper.getStackTrace(e));
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
 		}
-	
+		return trackId;
+	}
 
 	public Template[] getAllEvaluationTemplates() throws SCEException {
 		// SCEControlImpl sceControl=new SCEControlImpl();
@@ -8335,7 +8563,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 			}
 
-			// System.out.println("New User List Array Length"+ evaluationTemplatesList.size());
+			// System.out.println("New User List Array Length"+
+			// evaluationTemplatesList.size());
 
 			evaluationTemplates = evaluationTemplatesList
 					.toArray(new Template[evaluationTemplatesList.size()]);
@@ -8588,7 +8817,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 					arrActivityPk = new Integer[strArrActPk.length];
 					for (int i = 0; i < strArrActPk.length; i++) {
 						// Integer array containing all Activity PK to be saved
-						// // System.out.println("strArrActPk["+i+"] = "+strArrActPk[i]);
+						// //
+						// System.out.println("strArrActPk["+i+"] = "+strArrActPk[i]);
 						arrActivityPk[i] = new Integer(
 								Integer.parseInt(strArrActPk[i]));
 					}
@@ -8602,7 +8832,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			// while saving
 			if (!excludedActivityPk.equals("")) {
 				arrExcludeActPk = excludedActivityPk.split(",");
-				// System.out.println("Length of arrExcludeActPk = "+ arrExcludeActPk.length);
+				// System.out.println("Length of arrExcludeActPk = "+
+				// arrExcludeActPk.length);
 			}
 
 			// Insert only those records that are sent in
@@ -8625,7 +8856,7 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 							+ arrActivityPk[z] + "), " + "sysdate, " + "'"
 							+ emplId + "'" + ", " + arrActivityPk[z] + ", "
 							+ selTemplateId + ")";
-					
+
 					Query q = session.createSQLQuery(sqlQuery);
 
 					ts = session.beginTransaction();
@@ -8673,7 +8904,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 			if (selTemplateId != 0) {
 				mapping = getAllMappingsForTemplate(new Integer(selTemplateId));
-				// System.out.println("JCS:::All mappings array length = "+ mapping.length);
+				// System.out.println("JCS:::All mappings array length = "+
+				// mapping.length);
 			}
 
 		} catch (Exception e) {
@@ -8765,7 +8997,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 			if (selCourseIds != null || !selCourseIds.equalsIgnoreCase("")) {
 				courseIdArr = selCourseIds.split(",");
-				// System.out.println("Length of courseIdArr = "+ courseIdArr.length);
+				// System.out.println("Length of courseIdArr = "+
+				// courseIdArr.length);
 			}
 
 			if (courseIdArr != null && courseIdArr.length != 0) {
@@ -8802,22 +9035,21 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 				Object[] field = (Object[]) it.next();
 				courseEvalTemplateMapping.setMappingId(((BigDecimal) field[0])
 						.intValue());
-				
+
 				courseEvalTemplateMapping
 						.setEvalTemplateId(((BigDecimal) field[1]).intValue());
-				
+
 				courseEvalTemplateMapping.setName(field[2].toString());
-				
+
 				courseEvalTemplateMapping.setVersion(((BigDecimal) field[3])
 						.intValue());
-				
+
 				courseEvalTemplateMapping.setActivityPk(((BigDecimal) field[4])
 						.intValue());
-				
+
 				courseEvalTemplateMapping.setCourseName(field[5].toString());
-				
+
 				courseEvalTemplateMapping.setCourseCode(field[6].toString());
-			
 
 				alreadyMappedCoursesList.add(courseEvalTemplateMapping);
 
@@ -8847,21 +9079,22 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 		try {
 
-		/*	queryString.append("select location from v_atlas_home_state ")
-					.append("order by location asc ");*/
-			
-			
-		queryString.append("SELECT DISTINCT (home_state) FROM V_person_tra WHERE TRIM (home_state) IS NOT NULL order by home_state asc");
-		
+			/*
+			 * queryString.append("select location from v_atlas_home_state ")
+			 * .append("order by location asc ");
+			 */
+
+			queryString
+					.append("SELECT DISTINCT (home_state) FROM V_person_tra WHERE TRIM (home_state) IS NOT NULL order by home_state asc");
 
 			String q1 = queryString.toString();
 
-			 System.out.println("quer2" + queryString);
+			System.out.println("quer2" + queryString);
 			Query q = session.createSQLQuery(q1);
 
 			List list = q.list();
 
-			 System.out.println("size " + list.size());
+			System.out.println("size " + list.size());
 
 			allHomeStatesList.addAll(list);
 
@@ -8928,7 +9161,6 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 	}
 
-	
 	public GuestTrainer[] getAllGTForProduct(String product)
 			throws SQLException, SCEException {
 		// SCEControlImpl sceControl=new SCEControlImpl();
@@ -9402,73 +9634,82 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<TrainerLearnerMapping> trainLearnList = new ArrayList<TrainerLearnerMapping>();
 
 		try {
-			
-	/*Original query begin*/
 
-			/*queryString
-					.append("SELECT learner_name AS learnername, learner_loc AS learnerloc,")
-					.append("trainer_loc AS trainerloc, trainer_name AS trainername,")
-					.append("learner_email AS learneremail, trainer_email AS traineremail,")
-					.append("EMAIL_SENT as emailSent  FROM trainer_learners_mapping ")
-					.append(" WHERE product LIKE '" + pro + "'  AND ")
-					.append("event_name LIKE '" + eventName
-							+ "' AND TRUNC (course_start_date) LIKE TO_DATE ('"
-							+ h[0] + "', 'yyyy-mm-dd') order by trainer_name asc");*/
-			/*Original query end*/
+			/* Original query begin */
+
+			/*
+			 * queryString .append(
+			 * "SELECT learner_name AS learnername, learner_loc AS learnerloc,")
+			 * .
+			 * append("trainer_loc AS trainerloc, trainer_name AS trainername,")
+			 * .append(
+			 * "learner_email AS learneremail, trainer_email AS traineremail,")
+			 * .
+			 * append("EMAIL_SENT as emailSent  FROM trainer_learners_mapping ")
+			 * .append(" WHERE product LIKE '" + pro + "'  AND ")
+			 * .append("event_name LIKE '" + eventName +
+			 * "' AND TRUNC (course_start_date) LIKE TO_DATE ('" + h[0] +
+			 * "', 'yyyy-mm-dd') order by trainer_name asc");
+			 */
+			/* Original query end */
 			/*
 			 * Date:15 june 2015 New Code Added By Ankit For fetching the full
 			 * name in trainer learner mapping.
 			 */
 
-	/*		System.out.println("Before Query");
+			/*
+			 * System.out.println("Before Query"); queryString
+			 * .append("SELECT * FROM (SELECT l.learner_name AS learnername, ")
+			 * .append(" l.learner_loc AS learnerloc, ")
+			 * .append("l.trainer_loc AS trainerloc, ")
+			 * .append("l.trainer_name AS trainername, ")
+			 * .append("l.learner_email AS learneremail, ")
+			 * .append("l.trainer_email AS traineremail, ")
+			 * .append("l.EMAIL_SENT AS emailSent,") .append(
+			 * "CONCAT (CONCAT (lc.FIRST_NAME, ' '), lc.LAST_NAME) AS learnername_1, "
+			 * ) .append(
+			 * "CONCAT (CONCAT (g.REp_FNAME, ' '), g.REP_LNAME) AS trainername_1, "
+			 * ) .append("ROW_NUMBER()")
+			 * .append("OVER ( PARTITION BY l.learner_name, ")
+			 * .append("l.learner_loc, ").append("l.trainer_loc, ")
+			 * .append("l.trainer_name, ").append("l.learner_email, ")
+			 * .append("l.trainer_email, ").append("l.EMAIL_SENT ")
+			 * .append("ORDER BY NULL) ").append("rn ")
+			 * .append("FROM trainer_learners_mapping l ")
+			 * .append("INNER JOIN Guest_Trainer g ")
+			 * .append("ON     L.TRAINER_EMAIL = g.rep_email ")
+			 * .append("AND G.REP_FNAME = L.TRAINER_NAME ")
+			 * .append("INNER JOIN LEARNERS_COURSECOMPLETED lc ")
+			 * .append("ON     lc.Email_Address = l.learner_email ")
+			 * .append("AND LC.FIRST_NAME = L.LEARNER_NAME ")
+			 * .append("WHERE     l.product LIKE '" + pro + "'")
+			 * .append("AND l.event_name LIKE '" + eventName + "' ")
+			 * .append("AND TRUNC (l.course_start_date) LIKE ")
+			 * .append("TO_DATE ('" + h[0] + "', 'yyyy-mm-dd') ")
+			 * .append("ORDER BY trainer_name ASC) ") .append("WHERE rn = 1 ");
+			 * System.out.println("After Query"); System.out.println("Query :" +
+			 * queryString);
+			 */
+
 			queryString
-					.append("SELECT * FROM (SELECT l.learner_name AS learnername, ")
-					.append(" l.learner_loc AS learnerloc, ")
-					.append("l.trainer_loc AS trainerloc, ")
-					.append("l.trainer_name AS trainername, ")
-					.append("l.learner_email AS learneremail, ")
-					.append("l.trainer_email AS traineremail, ")
-					.append("l.EMAIL_SENT AS emailSent,")
-					.append("CONCAT (CONCAT (lc.FIRST_NAME, ' '), lc.LAST_NAME) AS learnername_1, ")
-					.append("CONCAT (CONCAT (g.REp_FNAME, ' '), g.REP_LNAME) AS trainername_1, ")
-					.append("ROW_NUMBER()")
-					.append("OVER ( PARTITION BY l.learner_name, ")
-					.append("l.learner_loc, ").append("l.trainer_loc, ")
-					.append("l.trainer_name, ").append("l.learner_email, ")
-					.append("l.trainer_email, ").append("l.EMAIL_SENT ")
-					.append("ORDER BY NULL) ").append("rn ")
-					.append("FROM trainer_learners_mapping l ")
-					.append("INNER JOIN Guest_Trainer g ")
-					.append("ON     L.TRAINER_EMAIL = g.rep_email ")
-					.append("AND G.REP_FNAME = L.TRAINER_NAME ")
-					.append("INNER JOIN LEARNERS_COURSECOMPLETED lc ")
-					.append("ON     lc.Email_Address = l.learner_email ")
-					.append("AND LC.FIRST_NAME = L.LEARNER_NAME ")
-					.append("WHERE     l.product LIKE '" + pro + "'")
-					.append("AND l.event_name LIKE '" + eventName + "' ")
-					.append("AND TRUNC (l.course_start_date) LIKE ")
-					.append("TO_DATE ('" + h[0] + "', 'yyyy-mm-dd') ")
-					.append("ORDER BY trainer_name ASC) ")
-					.append("WHERE rn = 1 ");
-			System.out.println("After Query");
-			System.out.println("Query :" + queryString);*/
-			
+					.append("SELECT * FROM (  SELECT l.learner_name AS learnername,l.learner_loc AS learnerloc,l.trainer_loc AS trainerloc,")
+					.append("l.trainer_name AS trainername,l.learner_email AS learneremail,l.trainer_email AS traineremail,l.EMAIL_SENT AS emailSent,CONCAT (CONCAT (lc.LAST_NAME,','), lc.FIRST_NAME)")
+					.append(" AS learnername_1,CONCAT (CONCAT (g.REP_LNAME, ','),  g.REp_FNAME)AS trainername_1,ROW_NUMBER ()OVER (PARTITION BY l.learner_name,")
+					.append("l.learner_loc,l.trainer_loc,l.trainer_name,l.learner_email,l.trainer_email,l.EMAIL_SENT ORDER BY NULL) rn")
+					.append(" FROM trainer_learners_mapping l INNER JOIN Guest_Trainer g ON     L.TRAINER_EMAIL = g.rep_email AND G.REP_FNAME = L.TRAINER_NAME INNER JOIN LEARNERS_COURSECOMPLETED lc")
+					.append(" ON lc.Email_Address = l.learner_email AND LC.FIRST_NAME = L.LEARNER_NAME WHERE     l.product LIKE '"
+							+ pro
+							+ "'  AND l.event_name LIKE '"
+							+ eventName
+							+ "'")
+					.append(" AND TRUNC (l.course_start_date) LIKE TO_DATE ('"
+							+ h[0]
+							+ "', 'yyyy-mm-dd') ORDER BY trainername ASC) WHERE rn = 1");
 
-			 
-			  queryString.append("SELECT * FROM (  SELECT l.learner_name AS learnername,l.learner_loc AS learnerloc,l.trainer_loc AS trainerloc,")
-              .append("l.trainer_name AS trainername,l.learner_email AS learneremail,l.trainer_email AS traineremail,l.EMAIL_SENT AS emailSent,CONCAT (CONCAT (lc.LAST_NAME,','), lc.FIRST_NAME)")
-              .append(" AS learnername_1,CONCAT (CONCAT (g.REP_LNAME, ','),  g.REp_FNAME)AS trainername_1,ROW_NUMBER ()OVER (PARTITION BY l.learner_name,")
-              .append("l.learner_loc,l.trainer_loc,l.trainer_name,l.learner_email,l.trainer_email,l.EMAIL_SENT ORDER BY NULL) rn")
-              .append(" FROM trainer_learners_mapping l INNER JOIN Guest_Trainer g ON     L.TRAINER_EMAIL = g.rep_email AND G.REP_FNAME = L.TRAINER_NAME INNER JOIN LEARNERS_COURSECOMPLETED lc")
-              .append(" ON lc.Email_Address = l.learner_email AND LC.FIRST_NAME = L.LEARNER_NAME WHERE     l.product LIKE '" + pro + "'  AND l.event_name LIKE '" + eventName
-                        + "'")
-               .append(" AND TRUNC (l.course_start_date) LIKE TO_DATE ('"+ h[0] +"', 'yyyy-mm-dd') ORDER BY trainername ASC) WHERE rn = 1");
-			 
-	
-			
-			
-			/*Ankit changes end for fetching full trainer name and leraner name in trainer leraner table*/
-
+			/*
+			 * Ankit changes end for fetching full trainer name and leraner name
+			 * in trainer leraner table
+			 */
 
 			String q1 = queryString.toString();
 
@@ -9488,16 +9729,15 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 				template = new TrainerLearnerMapping();
 				Object[] field = (Object[]) it.next();
 
-				//template.setLearnerName((String) field[0]);
+				// template.setLearnerName((String) field[0]);
 				template.setLearnerName((String) field[7]);
 				template.setLearnerLoc((String) field[1]);
 				template.setTrainerLoc((String) field[2]);
-				//template.setTrainerName((String) field[3]);
+				// template.setTrainerName((String) field[3]);
 				template.setTrainerName((String) field[8]);
 				template.setLearnerEmail((String) field[4]);
 				template.setTrainerEmail((String) field[5]);
 				template.setEmailSent((String) field[6]);
-			 
 
 				trainLearnList.add(template);
 
@@ -9540,24 +9780,32 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		}
 
 	}
-/*sanjeev begin delete mapping*/
-	/*public void gotoDeleteLTMapping(String delEmail) throws SCEException {*/
-		
-		public void gotoDeleteLTMapping(String delEmail,String product,String courseStartDate) throws SCEException {
+
+	/* sanjeev begin delete mapping */
+	/* public void gotoDeleteLTMapping(String delEmail) throws SCEException { */
+
+	public void gotoDeleteLTMapping(String delEmail, String product,
+			String courseStartDate) throws SCEException {
 		// SCEControlImpl sceControl=new SCEControlImpl();
 		Session session = HibernateUtils.getHibernateSession();
 		Transaction ts = null;
 		StringBuilder queryString = new StringBuilder();
-		String startDate=courseStartDate.substring(5,7)+"/"+courseStartDate.substring(8,10)+"/"+courseStartDate.substring(0,4);
-		System.out.println("startDate"+startDate);
+		String startDate = courseStartDate.substring(5, 7) + "/"
+				+ courseStartDate.substring(8, 10) + "/"
+				+ courseStartDate.substring(0, 4);
+		System.out.println("startDate" + startDate);
 		try {
 
-			/*queryString.append("DELETE from TRAINER_LEARNERS_MAPPING ").append(
-					"where LEARNER_EMAIL =  '" + delEmail + "' ");*/
-			
+			/*
+			 * queryString.append("DELETE from TRAINER_LEARNERS_MAPPING ").append
+			 * ( "where LEARNER_EMAIL =  '" + delEmail + "' ");
+			 */
+
 			queryString.append("DELETE from TRAINER_LEARNERS_MAPPING ").append(
-					"where LEARNER_EMAIL =  '" + delEmail + "' and PRODUCT = '" + product + "' and COURSE_START_DATE = to_date('" + startDate + "','mm-dd-yyyy') ");
-			/*sanjeev end delete mapping*/
+					"where LEARNER_EMAIL =  '" + delEmail + "' and PRODUCT = '"
+							+ product + "' and COURSE_START_DATE = to_date('"
+							+ startDate + "','mm-dd-yyyy') ");
+			/* sanjeev end delete mapping */
 			String q1 = queryString.toString();
 
 			// System.out.println("quer2" + queryString);
@@ -9580,8 +9828,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 	}
 
-	public TrainerLearnerMapping[] getCountOfEvalsPerTrainer(String eventName,String courseStartDate)
-			throws SQLException, SCEException
+	public TrainerLearnerMapping[] getCountOfEvalsPerTrainer(String eventName,
+			String courseStartDate) throws SQLException, SCEException
 
 	{
 
@@ -9592,7 +9840,7 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<TrainerLearnerMapping> countOfEvalsPerTrainerList = new ArrayList<TrainerLearnerMapping>();
 
 		try {
-			  
+
 			queryString
 					.append("select count(trainer_email) as trainerCount,trainer_email as trainerEmail,")
 					.append("trainer_name as trainerName from trainer_learners_mapping where EVENT_NAME ")
@@ -9652,21 +9900,28 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 		try {
 
-			/*queryString
-					.append("select t.FIRST_NAME as learnerName, t.LOCATION as learnerLoc ,")
+			/*
+			 * queryString .append(
+			 * "select t.FIRST_NAME as learnerName, t.LOCATION as learnerLoc ,")
+			 * .append(
+			 * "t.EMAIL_ADDRESS as learnerEmail from LEARNERS_COURSECOMPLETED t "
+			 * ) .append("where t.EVENT_NAME LIKE '" + eventName +
+			 * "' and  TRUNC(t.course_start_date) = to_date('" + h[0] +
+			 * "','yyyy-mm-dd') order by t.FIRST_NAME asc");
+			 */
+			/*
+			 * Sanjeev Code change for fetching full learnerName in manual map
+			 * dropdown
+			 */
+			queryString
+					.append("select CONCAT(CONCAT(Last_Name,','),First_Name) as learnerName, t.LOCATION as learnerLoc ,")
 					.append("t.EMAIL_ADDRESS as learnerEmail from LEARNERS_COURSECOMPLETED t ")
 					.append("where t.EVENT_NAME LIKE '" + eventName
 							+ "' and  TRUNC(t.course_start_date) = to_date('"
-							+ h[0] + "','yyyy-mm-dd') order by t.FIRST_NAME asc");*/
-/*Sanjeev Code change for fetching full learnerName in manual map dropdown */		
-			queryString
-		 	.append("select CONCAT(CONCAT(Last_Name,','),First_Name) as learnerName, t.LOCATION as learnerLoc ,")
-		 	.append("t.EMAIL_ADDRESS as learnerEmail from LEARNERS_COURSECOMPLETED t ")
-		 	.append("where t.EVENT_NAME LIKE '" + eventName
-		 			+ "' and  TRUNC(t.course_start_date) = to_date('"
-		 			+ h[0] + "','yyyy-mm-dd')  order by learnerName asc" );
-			
-/*Sanjeev end*/
+							+ h[0]
+							+ "','yyyy-mm-dd')  order by learnerName asc");
+
+			/* Sanjeev end */
 			String q1 = queryString.toString();
 
 			// System.out.println("quer2" + queryString);
@@ -9719,27 +9974,31 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 
 		try {
 
-			/*queryString
-					.append("SELECT distinct g.rep_fname AS trainerName, g.rep_email AS trainerEmail, ")
+			/*
+			 * queryString .append(
+			 * "SELECT distinct g.rep_fname AS trainerName, g.rep_email AS trainerEmail, "
+			 * ) .append("g.rep_location AS trainerLoc  FROM guest_trainer g ")
+			 * .append("JOIN guest_trainer_event t ON g.REP_EMAIL")
+			 * .append("= t.REP_EMAIL WHERE g.rep_associated_product = '" +
+			 * produtSel + "'")
+			 * .append("and t.REP_ISACCEPTED = 'Y' and t.EVENT_NAME = '" +
+			 * eventName + "'") .append("order by g.rep_fname asc");
+			 */
+
+			/*******
+			 * Sanjeev code change for fetchin trainer full name in manual mapp
+			 * dropdown
+			 **********/
+			queryString
+					.append("SELECT distinct CONCAT(CONCAT(REP_LNAME,','),REP_FNAME) AS trainerName, g.rep_email AS trainerEmail, ")
 					.append("g.rep_location AS trainerLoc  FROM guest_trainer g ")
 					.append("JOIN guest_trainer_event t ON g.REP_EMAIL")
 					.append("= t.REP_EMAIL WHERE g.rep_associated_product = '"
 							+ produtSel + "'")
 					.append("and t.REP_ISACCEPTED = 'Y' and t.EVENT_NAME = '"
 							+ eventName + "'")
-					.append("order by g.rep_fname asc");*/
-			
-/*******Sanjeev code change for fetchin trainer full name in manual mapp dropdown**********/			
-			queryString
-			.append("SELECT distinct CONCAT(CONCAT(REP_LNAME,','),REP_FNAME) AS trainerName, g.rep_email AS trainerEmail, ")
-			.append("g.rep_location AS trainerLoc  FROM guest_trainer g ")
-			.append("JOIN guest_trainer_event t ON g.REP_EMAIL")
-			.append("= t.REP_EMAIL WHERE g.rep_associated_product = '"
-					+ produtSel + "'")
-			.append("and t.REP_ISACCEPTED = 'Y' and t.EVENT_NAME = '"
-					+ eventName + "'")
-			.append("order by trainerName asc");
- /***********Sanjeev end*************/
+					.append("order by trainerName asc");
+			/*********** Sanjeev end *************/
 			String q1 = queryString.toString();
 
 			// System.out.println("quer2" + queryString);
@@ -9780,8 +10039,8 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 	}
 
 	public TrainerLearnerMapping[] getNoOfMailSentByEventTrainer(
-			String eventName, String trainerEmail,String courseStartDate) throws SQLException,
-			SCEException
+			String eventName, String trainerEmail, String courseStartDate)
+			throws SQLException, SCEException
 
 	{
 
@@ -9791,18 +10050,23 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<TrainerLearnerMapping> eventList = new ArrayList<TrainerLearnerMapping>();
 
 		try {
-			//**** BEGIN changes done by Sanjeev to remove date format issue ****//
-			/*queryString
-					.append("select count(learner_email) as trainerCount from trainer_learners_mapping where EVENT_NAME like :eventName and ")
-					.append("TRAINER_EMAIL like :trainerEmail and COURSE_START_DATE = to_date(:courseStartDate,'yyyy-mm-dd') and EMAIL_SENT ='Y' ");*/
-
+			// **** BEGIN changes done by Sanjeev to remove date format issue
+			// ****//
+			/*
+			 * queryString .append(
+			 * "select count(learner_email) as trainerCount from trainer_learners_mapping where EVENT_NAME like :eventName and "
+			 * ) .append(
+			 * "TRAINER_EMAIL like :trainerEmail and COURSE_START_DATE = to_date(:courseStartDate,'yyyy-mm-dd') and EMAIL_SENT ='Y' "
+			 * );
+			 */
 
 			queryString
-			.append("select count(learner_email) as trainerCount from trainer_learners_mapping where EVENT_NAME like :eventName and ")
-			.append("TRAINER_EMAIL like :trainerEmail and COURSE_START_DATE = to_date(:courseStartDate,'mm-dd-yyyy') and EMAIL_SENT ='Y' ");
+					.append("select count(learner_email) as trainerCount from trainer_learners_mapping where EVENT_NAME like :eventName and ")
+					.append("TRAINER_EMAIL like :trainerEmail and COURSE_START_DATE = to_date(:courseStartDate,'mm-dd-yyyy') and EMAIL_SENT ='Y' ");
 
-			//****END changes done by Sanjeev to remove date format issue ****//
-			
+			// ****END changes done by Sanjeev to remove date format issue
+			// ****//
+
 			String q1 = queryString.toString();
 
 			// System.out.println("quer2" + queryString);
@@ -9834,13 +10098,12 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 			// log.error(LoggerHelper.getStackTrace(e));
 			e.printStackTrace();
 			throw new SCEException("error.sce.unknown", e);
-		}
-		finally {
+		} finally {
 			HibernateUtils.closeHibernateSession(session);
 		}
 		return mailSentByEventTrainer;
 	}
-	
+
 	public TrainerLearnerMapping[] getTrainerLocForMannual(String produtSel,
 			String eventName) throws SQLException, SCEException
 
@@ -10008,22 +10271,33 @@ System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
 		List<Learner> LearnList = new ArrayList<Learner>();
 
 		try {
-queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
-		+ ",t.EMAIL_ADDRESS as emailAddress from LEARNERS_COURSECOMPLETED t  "
-		+ "where t.EVENT_NAME LIKE '"+eventName+"' "
-		+ "and TRUNC(t.course_start_date) = to_date('"+h[0]+"','yyyy-mm-dd') "
-		+ "MINUS "
-		+ "(SELECT learner_name AS learnerName, learner_loc AS learnerLoc, "
-		+ "learner_email AS learnerEmail "
-		+ "FROM trainer_learners_mapping "
-		+ "WHERE event_name LIKE '"+eventName+"' "
-		+ "AND TRUNC (course_start_date) = TO_DATE ('"+h[0]+"', 'yyyy-mm-dd'))");
-			/*queryString
-.append("select t.FIRST_NAME as firstName, t.LOCATION as location , ")
-.append("t.EMAIL_ADDRESS as emailAddress from LEARNERS_COURSECOMPLETED t ")
-.append("where t.EVENT_NAME LIKE '" + eventName + "' and ")
-.append("TRUNC(t.course_start_date) = to_date('" + h[0]
-+ "','yyyy-mm-dd') ");*/
+			queryString
+					.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
+							+ ",t.EMAIL_ADDRESS as emailAddress from LEARNERS_COURSECOMPLETED t  "
+							+ "where t.EVENT_NAME LIKE '"
+							+ eventName
+							+ "' "
+							+ "and TRUNC(t.course_start_date) = to_date('"
+							+ h[0]
+							+ "','yyyy-mm-dd') "
+							+ "MINUS "
+							+ "(SELECT learner_name AS learnerName, learner_loc AS learnerLoc, "
+							+ "learner_email AS learnerEmail "
+							+ "FROM trainer_learners_mapping "
+							+ "WHERE event_name LIKE '"
+							+ eventName
+							+ "' "
+							+ "AND TRUNC (course_start_date) = TO_DATE ('"
+							+ h[0] + "', 'yyyy-mm-dd'))");
+			/*
+			 * queryString
+			 * .append("select t.FIRST_NAME as firstName, t.LOCATION as location , "
+			 * ) .append(
+			 * "t.EMAIL_ADDRESS as emailAddress from LEARNERS_COURSECOMPLETED t "
+			 * ) .append("where t.EVENT_NAME LIKE '" + eventName + "' and ")
+			 * .append("TRUNC(t.course_start_date) = to_date('" + h[0] +
+			 * "','yyyy-mm-dd') ");
+			 */
 
 			String q1 = queryString.toString();
 
@@ -10062,8 +10336,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		return LearnArr;
 	}
 
-	public TrainerLearnerMapping[] getAlreadyMappedTrainer(String eventName,String courseStartDate)
-			throws SQLException, SCEException
+	public TrainerLearnerMapping[] getAlreadyMappedTrainer(String eventName,
+			String courseStartDate) throws SQLException, SCEException
 
 	{
 
@@ -10073,7 +10347,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		List<TrainerLearnerMapping> mappedTrainList = new ArrayList<TrainerLearnerMapping>();
 
 		try {
-			  
+
 			queryString
 					.append("select count(trainer_email) as trainerCount,trainer_email as trainerEmail ")
 					.append("from trainer_learners_mapping where EVENT_NAME ")
@@ -10118,8 +10392,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		return mappedTrainArr;
 	}
 
-	public GuestTrainer[] getTrainerForAuto(String produtSel, String eventName,String courseStartDate)
-			throws SQLException, SCEException
+	public GuestTrainer[] getTrainerForAuto(String produtSel, String eventName,
+			String courseStartDate) throws SQLException, SCEException
 
 	{
 
@@ -10128,49 +10402,44 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		StringBuilder queryString = new StringBuilder();
 		List<GuestTrainer> TrainList = new ArrayList<GuestTrainer>();
 
-		/*try {
+		/*
+		 * try {
+		 * 
+		 * queryString
+		 * .append(" SELECT distinct g.rep_fname AS fname,g.rep_lname AS lname,"
+		 * ) .append("g.rep_email AS repemail,  g.rep_location AS replocation ")
+		 * .
+		 * append("FROM guest_trainer g JOIN guest_trainer_event t ON g.REP_EMAIL "
+		 * ) .append("= t.REP_EMAIL WHERE g.rep_associated_product = '" +
+		 * produtSel + "' ") .append(" AND t.Product ='" + produtSel + "' ") //
+		 * Added by // ankit on // 9/11 for // Product // Based // filter on //
+		 * accpeted // GTs.
+		 * .append(" and t.REP_ISACCEPTED = 'Y' and t.EVENT_NAME = '" +
+		 * eventName + "' ");
+		 */
+
+		// *****************************************************************************
+		// work in progress
+		// added by manish on 2/15/2016
+		try {
 
 			queryString
-					.append(" SELECT distinct g.rep_fname AS fname,g.rep_lname AS lname,")
-					.append("g.rep_email AS repemail,  g.rep_location AS replocation ")
-					.append("FROM guest_trainer g JOIN guest_trainer_event t ON g.REP_EMAIL ")
-					.append("= t.REP_EMAIL WHERE g.rep_associated_product = '"
+					.append("SELECT DISTINCT t.rep_fname AS fname,t.rep_lname AS lname,b.REP_EMAIL,a.TOTAL_HOURS,c.EVAL_DURATION,t.rep_location AS replocation ")
+					.append("FROM TRAINER_EVENT_DATETIME_SLOTS a JOIN guest_trainer_event b ")
+					.append("ON a.MAP_ID = b.MAP_ID JOIN guest_trainer t ON b.REP_EMAIL = t.REP_EMAIL ")
+					.append("JOIN v_event c ON c.EVENT_NAME = b.EVENT_NAME WHERE t.rep_associated_product = '"
 							+ produtSel + "' ")
-					.append(" AND t.Product ='" + produtSel + "' ") // Added by
-																	// ankit on
-																	// 9/11 for
-																	// Product
-																	// Based
-																	// filter on
-																	// accpeted
-																	// GTs.
-					.append(" and t.REP_ISACCEPTED = 'Y' and t.EVENT_NAME = '"
-							+ eventName + "' ");*/
+					.append(" AND b.Product ='" + produtSel + "' ")
+					.append(" and b.REP_ISACCEPTED = 'Y' and b.EVENT_NAME = '"
+							+ eventName + "' ")
+					.append(" AND a.DATE_SEL = TO_DATE('" + courseStartDate
+							+ "','yyyy-mm-dd')+1");
 
-			
-			
-			//*****************************************************************************
-			//work in progress
-			//added by manish on 2/15/2016 
-			try {
+			// *********************************************************************************
 
-				
-				queryString
-						.append("SELECT DISTINCT t.rep_fname AS fname,t.rep_lname AS lname,b.REP_EMAIL,a.TOTAL_HOURS,c.EVAL_DURATION,t.rep_location AS replocation ")
-						.append("FROM TRAINER_EVENT_DATETIME_SLOTS a JOIN guest_trainer_event b ")
-						.append("ON a.MAP_ID = b.MAP_ID JOIN guest_trainer t ON b.REP_EMAIL = t.REP_EMAIL ")
-						.append("JOIN v_event c ON c.EVENT_NAME = b.EVENT_NAME WHERE t.rep_associated_product = '"+ produtSel + "' ")
-						.append(" AND b.Product ='" + produtSel + "' ") 
-						.append(" and b.REP_ISACCEPTED = 'Y' and b.EVENT_NAME = '"+ eventName + "' ")
-						.append(" AND a.DATE_SEL = TO_DATE('"+ courseStartDate +"','yyyy-mm-dd')+1");
-			
-			
-			
-			//*********************************************************************************
-				
-			String q1 = queryString.toString();		
+			String q1 = queryString.toString();
 
-			System.out.println("Get Trainer for Auto:"+ q1);
+			System.out.println("Get Trainer for Auto:" + q1);
 			Query q = session.createSQLQuery(q1);
 			// q.setParameter("eventName", eventName);
 
@@ -10208,44 +10477,65 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		}
 		return trainerForAuto;
 	}
-/* ------------- sanjeev begin trainer learner mapping issue------------------*/
-/*	public TrainerLearnerMapping[] gotoCheck(String learnerEmail,
-			String whichEventName) throws SQLException, SCEException
 
-	{*/
-		
-		
-		
-		public TrainerLearnerMapping[] gotoCheck(String learnerEmail,
-				String whichEventName,String selCourseName,String selCourseDateName) throws SQLException, SCEException
+	/*
+	 * ------------- sanjeev begin trainer learner mapping
+	 * issue------------------
+	 */
+	/*
+	 * public TrainerLearnerMapping[] gotoCheck(String learnerEmail, String
+	 * whichEventName) throws SQLException, SCEException
+	 * 
+	 * {
+	 */
 
-		{
-			/* ------------- sanjeev end trainer learner mapping issue------------------*/
+	public TrainerLearnerMapping[] gotoCheck(String learnerEmail,
+			String whichEventName, String selCourseName,
+			String selCourseDateName) throws SQLException, SCEException
+
+	{
+		/*
+		 * ------------- sanjeev end trainer learner mapping
+		 * issue------------------
+		 */
 		Session session = HibernateUtils.getHibernateSession();
 		TrainerLearnerMapping[] gotoCheck = null;
 		StringBuilder queryString = new StringBuilder();
 		String lEmail = learnerEmail;
 		String eventName = whichEventName;
-/*sanjeev*/	String courseStartDate=selCourseDateName.substring(5,7)+"/"+selCourseDateName.substring(8,10)+"/"+selCourseDateName.substring(0,4);
+		/* sanjeev */String courseStartDate = selCourseDateName.substring(5, 7)
+				+ "/" + selCourseDateName.substring(8, 10) + "/"
+				+ selCourseDateName.substring(0, 4);
 		List<TrainerLearnerMapping> gotoCheckList = new ArrayList<TrainerLearnerMapping>();
 
 		try {
-			/* ------------- sanjeev begin trainer learner mapping(manual mapping) : allowing learner to be mapped for different products in the same event------------------*/	
-			/*queryString
-			.append("select LEARNER_EMAIL as learnerEmail  from TRAINER_LEARNERS_MAPPING ")
-			.append("where LEARNER_EMAIL like '" + lEmail
-					+ "' and EVENT_NAME like '" + eventName + "' ");*/
-			
-			/*2013-12-10*/
+			/*
+			 * ------------- sanjeev begin trainer learner mapping(manual
+			 * mapping) : allowing learner to be mapped for different products
+			 * in the same event------------------
+			 */
+			/*
+			 * queryString .append(
+			 * "select LEARNER_EMAIL as learnerEmail  from TRAINER_LEARNERS_MAPPING "
+			 * ) .append("where LEARNER_EMAIL like '" + lEmail +
+			 * "' and EVENT_NAME like '" + eventName + "' ");
+			 */
+
+			/* 2013-12-10 */
 			queryString
 					.append("select LEARNER_EMAIL as learnerEmail  from TRAINER_LEARNERS_MAPPING ")
 					.append("where LEARNER_EMAIL like '" + lEmail
-							+ "' and EVENT_NAME like '" + eventName + "' and PRODUCT like '" + selCourseName + "' and COURSE_START_DATE = to_date('" + courseStartDate + "','mm-dd-yyyy')");
-			
-			System.out.println("course_start_date"+selCourseDateName);
-			System.out.println("courseStartDate"+courseStartDate);
-			/* ------------- sanjeev end trainer learner mapping issue------------------*/
-		
+							+ "' and EVENT_NAME like '" + eventName
+							+ "' and PRODUCT like '" + selCourseName
+							+ "' and COURSE_START_DATE = to_date('"
+							+ courseStartDate + "','mm-dd-yyyy')");
+
+			System.out.println("course_start_date" + selCourseDateName);
+			System.out.println("courseStartDate" + courseStartDate);
+			/*
+			 * ------------- sanjeev end trainer learner mapping
+			 * issue------------------
+			 */
 
 			String q1 = queryString.toString();
 
@@ -10562,56 +10852,61 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		Transaction ts;
 		StringBuilder queryString = new StringBuilder();
 		// List<Learner> TrainList = new ArrayList<Learner>();
-/*     Sanjeev begin code change added if else block for null manager details-- code change done in if block and else block not changed*/
+		/*
+		 * Sanjeev begin code change added if else block for null manager
+		 * details-- code change done in if block and else block not changed
+		 */
 		try {
-			
-			if(guestTrainerObj.getRepManager()==null && 
-                    guestTrainerObj.getRepManagerRole()==null && 
-                    guestTrainerObj.getMgrEmail()==null){
 
-                queryString
-                .append("insert into guest_trainer(rep_id,rep_email, ")
-                .append("rep_location,rep_role,rep_manager,rep_manager_role, ")
-                .append("rep_associated_product,rep_isselected, rep_eventhistory, ")
-                .append("rep_fname,rep_lname,rep_ntid,rep_manager_email) ")
-                .append("values ")
-                .append("( ")
-                .append("SQ_GUEST_TRAINER.NEXTVAL,")
-                .append("'" + guestTrainerObj.getRepEmail() + "',")
-                .append("'" + guestTrainerObj.getRepLocation() + "',")
-                .append("'" + guestTrainerObj.getRepRole() + "',")
-                .append("null,")
-                .append("null,")
-                .append("'" + guestTrainerObj.getAssociatedProduct() + "',")
-                .append("'" + guestTrainerObj.getIsSelected() + "',")
-                .append("'" + guestTrainerObj.getEventHistory() + "',")
-                .append("'" + guestTrainerObj.getFname() + "',")
-                .append("'" + guestTrainerObj.getLname() + "',")
-                .append("'" + guestTrainerObj.getNtid() + "',")
-                .append("null) ");
+			if (guestTrainerObj.getRepManager() == null
+					&& guestTrainerObj.getRepManagerRole() == null
+					&& guestTrainerObj.getMgrEmail() == null) {
 
-			}
-			else{
-			queryString
-					.append("insert into guest_trainer(rep_id,rep_email, ")
-					.append("rep_location,rep_role,rep_manager,rep_manager_role, ")
-					.append("rep_associated_product,rep_isselected, rep_eventhistory, ")
-					.append("rep_fname,rep_lname,rep_ntid,rep_manager_email) ")
-					.append("values ")
-					.append("( ")
-					.append("SQ_GUEST_TRAINER.NEXTVAL,")
-					.append("'" + guestTrainerObj.getRepEmail() + "',")
-					.append("'" + guestTrainerObj.getRepLocation() + "',")
-					.append("'" + guestTrainerObj.getRepRole() + "',")
-					.append("'" + guestTrainerObj.getRepManager() + "',")
-					.append("'" + guestTrainerObj.getRepManagerRole() + "',")
-					.append("'" + guestTrainerObj.getAssociatedProduct() + "',")
-					.append("'" + guestTrainerObj.getIsSelected() + "',")
-					.append("'" + guestTrainerObj.getEventHistory() + "',")
-					.append("'" + guestTrainerObj.getFname() + "',")
-					.append("'" + guestTrainerObj.getLname() + "',")
-					.append("'" + guestTrainerObj.getNtid() + "',")
-					.append("'" + guestTrainerObj.getMgrEmail() + "') ");
+				queryString
+						.append("insert into guest_trainer(rep_id,rep_email, ")
+						.append("rep_location,rep_role,rep_manager,rep_manager_role, ")
+						.append("rep_associated_product,rep_isselected, rep_eventhistory, ")
+						.append("rep_fname,rep_lname,rep_ntid,rep_manager_email) ")
+						.append("values ")
+						.append("( ")
+						.append("SQ_GUEST_TRAINER.NEXTVAL,")
+						.append("'" + guestTrainerObj.getRepEmail() + "',")
+						.append("'" + guestTrainerObj.getRepLocation() + "',")
+						.append("'" + guestTrainerObj.getRepRole() + "',")
+						.append("null,")
+						.append("null,")
+						.append("'" + guestTrainerObj.getAssociatedProduct()
+								+ "',")
+						.append("'" + guestTrainerObj.getIsSelected() + "',")
+						.append("'" + guestTrainerObj.getEventHistory() + "',")
+						.append("'" + guestTrainerObj.getFname() + "',")
+						.append("'" + guestTrainerObj.getLname() + "',")
+						.append("'" + guestTrainerObj.getNtid() + "',")
+						.append("null) ");
+
+			} else {
+				queryString
+						.append("insert into guest_trainer(rep_id,rep_email, ")
+						.append("rep_location,rep_role,rep_manager,rep_manager_role, ")
+						.append("rep_associated_product,rep_isselected, rep_eventhistory, ")
+						.append("rep_fname,rep_lname,rep_ntid,rep_manager_email) ")
+						.append("values ")
+						.append("( ")
+						.append("SQ_GUEST_TRAINER.NEXTVAL,")
+						.append("'" + guestTrainerObj.getRepEmail() + "',")
+						.append("'" + guestTrainerObj.getRepLocation() + "',")
+						.append("'" + guestTrainerObj.getRepRole() + "',")
+						.append("'" + guestTrainerObj.getRepManager() + "',")
+						.append("'" + guestTrainerObj.getRepManagerRole()
+								+ "',")
+						.append("'" + guestTrainerObj.getAssociatedProduct()
+								+ "',")
+						.append("'" + guestTrainerObj.getIsSelected() + "',")
+						.append("'" + guestTrainerObj.getEventHistory() + "',")
+						.append("'" + guestTrainerObj.getFname() + "',")
+						.append("'" + guestTrainerObj.getLname() + "',")
+						.append("'" + guestTrainerObj.getNtid() + "',")
+						.append("'" + guestTrainerObj.getMgrEmail() + "') ");
 			}
 			String q1 = queryString.toString();
 
@@ -10737,7 +11032,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		}
 		return gTByProduct;
 	}
-	
+
 	public GuestTrainer getGTFromAtlasByEmailProduct(String email,
 			String product) throws SQLException, SCEException
 
@@ -10889,7 +11184,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	public String[] retrieveScoringOptions(Integer evaluationTemplateId)
 			throws SQLException {
 		// System.out.println("inside retrieveScoringOptions method");
-		// System.out.println("value of evaluationTemplateId"+ evaluationTemplateId);
+		// System.out.println("value of evaluationTemplateId"+
+		// evaluationTemplateId);
 		Session session = HibernateUtils.getHibernateSession();
 		StringBuilder queryString = new StringBuilder();
 		List<String> ls = new ArrayList<String>();
@@ -10943,25 +11239,25 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * .append("select score_value from scoring_system ")
 	 * .append(" where scoring_system_identifier=:scoringSystemIdentifier ");
 	 * 
-	 * String q1 = queryString.toString();
-	 * // System.out.println("query formed is "+ q1); Query q =
+	 * String q1 = queryString.toString(); //
+	 * System.out.println("query formed is "+ q1); Query q =
 	 * session.createSQLQuery(q1); q.setParameter("scoringSystemIdentifier",
-	 * scoringSystemIdentifier); ls = q.list();
-	 * // System.out.println("List fetched for the second time is "+ ls);
+	 * scoringSystemIdentifier); ls = q.list(); //
+	 * System.out.println("List fetched for the second time is "+ ls);
 	 * List<String> newLs = new ArrayList<String>();
 	 * 
 	 * Iterator it = ls.iterator(); //String s = null; while(it.hasNext()) { //s
 	 * = new String(); //Object[] field = (Object[]) it.next();
-	 * newLs.add((String)it.next()); }
-	 * // System.out.println("value of second new list "+ newLs); temp =
+	 * newLs.add((String)it.next()); } //
+	 * System.out.println("value of second new list "+ newLs); temp =
 	 * (String[])newLs.toArray(new String[newLs.size()]); } catch
 	 * (HibernateException e) { //
 	 * getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY, //
-	 * "getDistributionListFilters --> HibernateException : ", e);
-	 * // System.out.println(); e.printStackTrace();
+	 * "getDistributionListFilters --> HibernateException : ", e); //
+	 * System.out.println(); e.printStackTrace();
 	 * 
-	 * // log.error("HibernateException in getUserByNTIdAndDomain", e);
-	 * // System.out.println("getUserByNTIdAndDomain Hibernatate Exception"); }
+	 * // log.error("HibernateException in getUserByNTIdAndDomain", e); //
+	 * System.out.println("getUserByNTIdAndDomain Hibernatate Exception"); }
 	 * finally { HibernateUtils.closeHibernateSession(session); }
 	 * 
 	 * return temp; }
@@ -10995,8 +11291,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * );
 	 * 
 	 * 
-	 * String q1 = queryString.toString();
-	 * // System.out.println("query formed is "+ q1); Query q =
+	 * String q1 = queryString.toString(); //
+	 * System.out.println("query formed is "+ q1); Query q =
 	 * session.createSQLQuery(q1); q.setParameter("evaluationTemplateId",
 	 * evaluationTemplateId); q.setParameter("scoringOption", scoringOption);
 	 * 
@@ -11007,25 +11303,26 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * while(it.hasNext()) { // System.out.println("within Iterator"); empt= new
 	 * EmailTemplate(); Object[] field = (Object[]) it.next();
 	 * empt.setEmailTemplateId(((BigDecimal) field[0]).intValue());
-	 * //empt.setEvaluationTemplateId(((BigDecimal) field[0]).intValue());
-	 * // System.out.println("first value set");
-	 * empt.setEvaluationTemplateName((String) field[1]);
-	 * // System.out.println("second value set");
-	 * empt.setScoringSystemIdentifier((String) field[2] );
-	 * // System.out.println("Third value set");
+	 * //empt.setEvaluationTemplateId(((BigDecimal) field[0]).intValue()); //
+	 * System.out.println("first value set");
+	 * empt.setEvaluationTemplateName((String) field[1]); //
+	 * System.out.println("second value set");
+	 * empt.setScoringSystemIdentifier((String) field[2] ); //
+	 * System.out.println("Third value set");
 	 * empt.setEmailTemplateVersion((String) field[3]);
-	 * empt.setOverallScore((String) field[4]);
-	 * // System.out.println("Forth value set");
+	 * empt.setOverallScore((String) field[4]); //
+	 * System.out.println("Forth value set");
 	 * empt.setEvaluationTemplateVersionId(((BigDecimal) field[5]).intValue());
-	 * // System.out.println("fifth value set"); Character publishFlag= (Character)
-	 * field[6]; empt.setPublishFlag((String)publishFlag.toString());
-	 * empt.setEmailSubject((String) field[7]);
-	 * // System.out.println("ten value set"); empt.setEmailBody((String)
-	 * field[8]); // System.out.println("eleven value set");
-	 * // System.out.println("value set"); newList.add(empt); }
+	 * // System.out.println("fifth value set"); Character publishFlag=
+	 * (Character) field[6];
+	 * empt.setPublishFlag((String)publishFlag.toString());
+	 * empt.setEmailSubject((String) field[7]); //
+	 * System.out.println("ten value set"); empt.setEmailBody((String)
+	 * field[8]); // System.out.println("eleven value set"); //
+	 * System.out.println("value set"); newList.add(empt); }
 	 * //temp=(EmailTemplate[])newList.toArray(); temp=newList.toArray(new
-	 * EmailTemplate[newList.size()]); // System.out.println("value of temp is "+
-	 * temp);
+	 * EmailTemplate[newList.size()]); //
+	 * System.out.println("value of temp is "+ temp);
 	 * 
 	 * 
 	 * }catch (Exception e) { //log.error(LoggerHelper.getStackTrace(e));
@@ -11056,7 +11353,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 					statement.executeUpdate();
 					// read the OUT parameter now
 					result = statement.getString(2);
-					// System.out.println("Template Published Successfully::"+ result);
+					// System.out.println("Template Published Successfully::"+
+					// result);
 
 				}
 
@@ -11159,8 +11457,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * 
 	 * 
 	 * 
-	 * String q1 = queryString.toString();
-	 * // System.out.println("query formed is "+ q1); Query q =
+	 * String q1 = queryString.toString(); //
+	 * System.out.println("query formed is "+ q1); Query q =
 	 * session.createSQLQuery(q1); q.setParameter("evaluationTemplateName",
 	 * evaluationTemplateName); q.setParameter("scoringOption", scoringOption);
 	 * q.setParameter("overallScore", overallScore);
@@ -11169,8 +11467,9 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * 
 	 * 
 	 * 
-	 * List list = q.list(); // System.out.println("List fetched from database is"+
-	 * list); Iterator it = list.iterator();
+	 * List list = q.list(); //
+	 * System.out.println("List fetched from database is"+ list); Iterator it =
+	 * list.iterator();
 	 * 
 	 * 
 	 * while(it.hasNext()) { // System.out.println("within Iterator"); empt= new
@@ -11350,10 +11649,11 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 */
 
 	// Apoorva end
-	
-	public Integer isPhaseTraining(Integer eventId) throws SQLException, SCEException {
+
+	public Integer isPhaseTraining(Integer eventId) throws SQLException,
+			SCEException {
 		Session session = HibernateUtils.getHibernateSession();
-		
+
 		Integer result = 0;
 		StringBuilder queryString = new StringBuilder();
 		// List<Learner> TrainList = new ArrayList<Learner>();
@@ -11369,10 +11669,11 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			Query q = session.createSQLQuery(q1);
 
 			q.setParameter("eventId", eventId);
-		
+
 			List list = q.list();
-			
-			result = (list.size() > 0) ? ((BigDecimal) list.get(0)).intValue() : null;
+
+			result = (list.size() > 0) ? ((BigDecimal) list.get(0)).intValue()
+					: null;
 
 		} catch (Exception e) {
 			// log.error(LoggerHelper.getStackTrace(e));
@@ -11384,200 +11685,190 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		return result;
 	}
 
+	public SCE[] getSCEHistoryForTRT(Integer eventId, String emplId,
+			String productCode) throws SQLException {
+		Session session = HibernateUtils.getHibernateSession();
 
-	public	SCE[] getSCEHistoryForTRT(Integer eventId, String emplId, String productCode) throws SQLException 
-{
-	Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		List<SCE> sceList = new ArrayList<SCE>();
+		SCE[] sceTemp = null;
+		try {
 
-	StringBuilder queryString = new StringBuilder();
-	List<SCE> sceList = new ArrayList<SCE>();
-	SCE[] sceTemp = null;
-	try {
-		 
-	 
-		queryString
-		.append("SELECT id, eventId, emplId, productCode, product, course, ")
-		.append("classroom, tableName, overallRating, overallScore, submittedDate, status ,formTitle ")
-		.append("FROM ")
-		.append("(SELECT ")
-		.append("s.sce_id AS id,")
-		.append(" s.event_id as eventId,")
-		.append(" s.emplId AS emplId,")
-		.append("s.product_cd AS productCode,")
-		.append("s.product_name AS product,")
-		.append("s.course_description as course,")
-		.append(" s.classroom AS classroom,")
-		.append("s.table_name AS tableName, ")    
-		.append("s.overall_rating AS overallRating,")
-		.append("s.overall_score AS overallScore,")
-		.append("s.submitted_date AS submittedDate,")
-		.append("s.status AS status,")
-		.append(" tv.form_title AS formTitle ")
-		.append("FROM ")
-		.append("sales_call.SCE_FFT s ,sales_call.template_version tv ")
-		.append("WHERE ")
-		.append("s.template_version_id = tv.template_version_id ")
-		.append("and s.emplId = :emplId ")
-		.append("and status = 'SUBMITTED' ")
-		.append("and s.product_cd= :productCode ")
-		.append(") ")
-		.append("ORDER BY ")
-		.append("id desc ");
-		
-		String q1 = queryString.toString();
-		
-		// System.out.println("QUERY-->"+q1);
-		
-		// System.out.println("query formed is " + q1);
-		Query q = session.createSQLQuery(q1);
-		
-		q.setParameter("emplId", emplId);
-		q.setParameter("productCode",productCode);
-		
-		
-		List list = q.list();
-		
-		// System.out.println("List fetched from database is" + list);
-		
-		Iterator it = list.iterator();
-		SCE empt = null;
-		
-		while (it.hasNext()) {
-			empt = new SCE();
-			Object[] field = (Object[]) it.next();
-			empt.setId(((BigDecimal) field[0]).intValue());
-			empt.setEventId(((BigDecimal) field[1]).intValue());
-			empt.setEmplId((String) field[2]);
-			empt.setProductCode((String) field[3]);
-			empt.setProduct((String) field[4]);
-			empt.setCourse((String) field[5]);
-			empt.setClassroom((String) field[6]);
-			empt.setTableName((String) field[7]);
-			empt.setOverallRating((String) field[8]);
-			empt.setOverallScore((Double) field[9]);
-			empt.setSubmittedDate((Date) field[10]);
-			empt.setStatus((String) field[11]);
-			empt.setFormTitle((String) field[12]);
-			
-			sceList.add(empt);
+			queryString
+					.append("SELECT id, eventId, emplId, productCode, product, course, ")
+					.append("classroom, tableName, overallRating, overallScore, submittedDate, status ,formTitle ")
+					.append("FROM ")
+					.append("(SELECT ")
+					.append("s.sce_id AS id,")
+					.append(" s.event_id as eventId,")
+					.append(" s.emplId AS emplId,")
+					.append("s.product_cd AS productCode,")
+					.append("s.product_name AS product,")
+					.append("s.course_description as course,")
+					.append(" s.classroom AS classroom,")
+					.append("s.table_name AS tableName, ")
+					.append("s.overall_rating AS overallRating,")
+					.append("s.overall_score AS overallScore,")
+					.append("s.submitted_date AS submittedDate,")
+					.append("s.status AS status,")
+					.append(" tv.form_title AS formTitle ")
+					.append("FROM ")
+					.append("sales_call.SCE_FFT s ,sales_call.template_version tv ")
+					.append("WHERE ")
+					.append("s.template_version_id = tv.template_version_id ")
+					.append("and s.emplId = :emplId ")
+					.append("and status = 'SUBMITTED' ")
+					.append("and s.product_cd= :productCode ").append(") ")
+					.append("ORDER BY ").append("id desc ");
+
+			String q1 = queryString.toString();
+
+			// System.out.println("QUERY-->"+q1);
+
+			// System.out.println("query formed is " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			q.setParameter("emplId", emplId);
+			q.setParameter("productCode", productCode);
+
+			List list = q.list();
+
+			// System.out.println("List fetched from database is" + list);
+
+			Iterator it = list.iterator();
+			SCE empt = null;
+
+			while (it.hasNext()) {
+				empt = new SCE();
+				Object[] field = (Object[]) it.next();
+				empt.setId(((BigDecimal) field[0]).intValue());
+				empt.setEventId(((BigDecimal) field[1]).intValue());
+				empt.setEmplId((String) field[2]);
+				empt.setProductCode((String) field[3]);
+				empt.setProduct((String) field[4]);
+				empt.setCourse((String) field[5]);
+				empt.setClassroom((String) field[6]);
+				empt.setTableName((String) field[7]);
+				empt.setOverallRating((String) field[8]);
+				empt.setOverallScore((Double) field[9]);
+				empt.setSubmittedDate((Date) field[10]);
+				empt.setStatus((String) field[11]);
+				empt.setFormTitle((String) field[12]);
+
+				sceList.add(empt);
+			}
+
+			// temp=(EmailTemplate[])newList.toArray();
+			sceTemp = sceList.toArray(new SCE[sceList.size()]);
+			// System.out.println("value of temp is " + sceTemp);
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+			// log.error("HibernateException in getUserByNTIdAndDomain", e);
+			// //
+			// System.out.println("getUserByNTIdAndDomain Hibernatate Exception");
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
 		}
 
-		// temp=(EmailTemplate[])newList.toArray();
-		sceTemp = sceList.toArray(new SCE[sceList.size()]);
-		// System.out.println("value of temp is " + sceTemp);
-
-	} catch (HibernateException e) {
-		
-		e.printStackTrace();
-
-		// log.error("HibernateException in getUserByNTIdAndDomain", e);
-		//// System.out.println("getUserByNTIdAndDomain Hibernatate Exception");
-	} finally {
-		HibernateUtils.closeHibernateSession(session);
+		return sceTemp;
 	}
 
-	return sceTemp;
-}	
-	
-	public	SCEDetail[] getSCEDetailsLatestPhase(Integer eventId, String course) throws SQLException
-{
-	Session session = HibernateUtils.getHibernateSession();
+	public SCEDetail[] getSCEDetailsLatestPhase(Integer eventId, String course)
+			throws SQLException {
+		Session session = HibernateUtils.getHibernateSession();
 
-	StringBuilder queryString = new StringBuilder();
-	List<SCEDetail> sceDetailList = new ArrayList<SCEDetail>();
-	SCEDetail[] sceDetailTemp = null;
-	try {
-		queryString
-		.append("SELECT ")
-		.append("q.question_id AS questionId,")
-		.append("q.template_version_id AS templateVersionId,")
-		.append("q.title AS title,")
-		.append("q.display_order AS displayOrder,")
-		.append(" q.description AS description,")
-		.append("q.critical AS critical,")
-		.append("q.type AS type,")
-		.append("q.weight AS weight,")
-		.append("tv.form_title AS formTitle,")
-		.append("tv.precall_comments as precallComments,")
-		.append("tv.postcall_comments as postcallComments,")
-		.append("tv.hlc_critical as hlcCritical ")    
-		.append("FROM ")
-		.append("QUESTION q,")
-		.append("TEMPLATE_VERSION tv, ")
-		.append("TEMPLATE t, ")
-		.append(" EVENT_COURSE ec ")
-		.append(" WHERE ")
-		.append("q.template_version_id = tv.template_version_id AND ")
-		.append("tv.template_id = t.template_id AND ")
-		.append("tv.version = t.current_version AND ")
-		.append("ec.template_id = t.template_id AND ")
-		.append("ec.event_id = :eventId and ec.course_name = :course ")
-		.append("order by ")
-		.append("display_order asc ");
-		
-		
-		
-		String q1 = queryString.toString();
-		// System.out.println("query formed is " + q1);
-		Query q = session.createSQLQuery(q1);
-		
-		q.setParameter("eventId", eventId);
-		q.setParameter("course", course);
-		
-		
-		List list = q.list();
-		
-		// System.out.println("List fetched from database is" + list);
-		
-		Iterator it = list.iterator();
-		SCEDetail empt = null;
-		
-		while (it.hasNext()) {
-			empt = new SCEDetail();
-			Object[] field = (Object[]) it.next();
-			empt.setQuestionId(((BigDecimal) field[0]).intValue());
-			empt.setTemplateVersionId(((BigDecimal) field[1]).intValue());
-			empt.setTitle((String) field[2]);
-			empt.setDisplayOrder(((BigDecimal) field[3]).intValue());
-			empt.setDescription((String) field[4]);
-			empt.setCritical((String) field[5]);
-			empt.setType((String) field[6]);
-			empt.setWeight((Double) field[7]);
-			empt.setFormTitle((String) field[8]);
-			empt.setPrecallComments((String) field[9]);
-			empt.setPostcallComments((String) field[10]);
-			empt.setHlcCritical((String) field[11]);
-			
-			
-			sceDetailList.add(empt);
+		StringBuilder queryString = new StringBuilder();
+		List<SCEDetail> sceDetailList = new ArrayList<SCEDetail>();
+		SCEDetail[] sceDetailTemp = null;
+		try {
+			queryString
+					.append("SELECT ")
+					.append("q.question_id AS questionId,")
+					.append("q.template_version_id AS templateVersionId,")
+					.append("q.title AS title,")
+					.append("q.display_order AS displayOrder,")
+					.append(" q.description AS description,")
+					.append("q.critical AS critical,")
+					.append("q.type AS type,")
+					.append("q.weight AS weight,")
+					.append("tv.form_title AS formTitle,")
+					.append("tv.precall_comments as precallComments,")
+					.append("tv.postcall_comments as postcallComments,")
+					.append("tv.hlc_critical as hlcCritical ")
+					.append("FROM ")
+					.append("QUESTION q,")
+					.append("TEMPLATE_VERSION tv, ")
+					.append("TEMPLATE t, ")
+					.append(" EVENT_COURSE ec ")
+					.append(" WHERE ")
+					.append("q.template_version_id = tv.template_version_id AND ")
+					.append("tv.template_id = t.template_id AND ")
+					.append("tv.version = t.current_version AND ")
+					.append("ec.template_id = t.template_id AND ")
+					.append("ec.event_id = :eventId and ec.course_name = :course ")
+					.append("order by ").append("display_order asc ");
+
+			String q1 = queryString.toString();
+			// System.out.println("query formed is " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			q.setParameter("eventId", eventId);
+			q.setParameter("course", course);
+
+			List list = q.list();
+
+			// System.out.println("List fetched from database is" + list);
+
+			Iterator it = list.iterator();
+			SCEDetail empt = null;
+
+			while (it.hasNext()) {
+				empt = new SCEDetail();
+				Object[] field = (Object[]) it.next();
+				empt.setQuestionId(((BigDecimal) field[0]).intValue());
+				empt.setTemplateVersionId(((BigDecimal) field[1]).intValue());
+				empt.setTitle((String) field[2]);
+				empt.setDisplayOrder(((BigDecimal) field[3]).intValue());
+				empt.setDescription((String) field[4]);
+				empt.setCritical((String) field[5]);
+				empt.setType((String) field[6]);
+				empt.setWeight((Double) field[7]);
+				empt.setFormTitle((String) field[8]);
+				empt.setPrecallComments((String) field[9]);
+				empt.setPostcallComments((String) field[10]);
+				empt.setHlcCritical((String) field[11]);
+
+				sceDetailList.add(empt);
+			}
+
+			sceDetailTemp = sceDetailList.toArray(new SCEDetail[sceDetailList
+					.size()]);
+			// System.out.println("value of temp is " + sceDetailTemp);
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+			// log.error("HibernateException in getUserByNTIdAndDomain", e);
+
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
 		}
 
-		
-		sceDetailTemp = sceDetailList.toArray(new SCEDetail[sceDetailList.size()]);
-		// System.out.println("value of temp is " + sceDetailTemp);
-
-	} catch (HibernateException e) {
-		
-		e.printStackTrace();
-
-		// log.error("HibernateException in getUserByNTIdAndDomain", e);
-		
-	} finally {
-		HibernateUtils.closeHibernateSession(session);
+		return sceDetailTemp;
 	}
 
-	return sceDetailTemp;
-}
-	
-	
-	public Role checkRoleAccess(String rolecd,Integer eventId) throws SQLException, SCEException
+	public Role checkRoleAccess(String rolecd, Integer eventId)
+			throws SQLException, SCEException
 
 	{
 
 		Session session = HibernateUtils.getHibernateSession();
 		Role roleArr = null;
 		StringBuilder queryString = new StringBuilder();
-	
 
 		try {
 
@@ -11585,7 +11876,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 					.append("select A.role_cd as roleCd, A.role_desc as roleDesc, A.save as isSave,A.submit as isSubmit, ")
 					.append(" A.REPORT_TYPE AS reportType from PHASE_EVALUATION_ACCESS A, PHASE_EVALUATION_MAPPING B ")
 					.append("WHERE A.ROLE_CD= :rolecd AND B.EVENT_ID= :eventId AND A.REPORT_TYPE=B.REPORT_TYPE ");
-					
+
 			String q1 = queryString.toString();
 
 			// System.out.println("quer2" + queryString);
@@ -11605,7 +11896,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 				template = new Role();
 				Object[] field = (Object[]) it.next();
 
-				template.setRoleCd((String) field[0]);				
+				template.setRoleCd((String) field[0]);
 				template.setRoleDesc((String) field[1]);
 				template.setIsSave((String) field[2]);
 				template.setIsSubmit((String) field[3]);
@@ -11624,9 +11915,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		}
 		return roleArr;
 	}
-	
-	
-	
+
 	/* GADALP STARTS HERE */
 
 	/* Adbhut Singh - Start */
@@ -11654,7 +11943,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			// changes the date format - end
 
 			// System.out.println("From final - userArray");
-			// System.out.println("userArray - Adbhut Event date "+ userArray.getEventEndDate());
+			// System.out.println("userArray - Adbhut Event date "+
+			// userArray.getEventEndDate());
 		} catch (HibernateException e) {
 			e.printStackTrace();
 			// System.out.println("Hibernatate Exception");
@@ -11693,7 +11983,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			 * "type_of_eval , "; sql += "number_of_learners  "; sql += "from ";
 			 * sql += "V_Event";
 			 */
-			String sql = "select event_id,PRODUCT, event_name, event_description, event_start_date, event_end_date, event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners from V_Event";
+			String sql = "select event_id,PRODUCT, event_name, event_description, event_start_date, event_end_date, event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners,bu_id from V_Event ORDER BY EVENT_CREATED_ON DESC";
 
 			// System.out.println("Adbhut - Test 3- SQL ::" + sql);
 
@@ -11711,8 +12001,11 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			 * it.next()).getEventName()); }
 			 */
 
-			System.out
-					.println("AuserArray = (EventsCreated[]) list.toArray(new EventsCreated[list.size()]);");
+			/*
+			 * System.out .println(
+			 * "AuserArray = (EventsCreated[]) list.toArray(new EventsCreated[list.size()]);"
+			 * );
+			 */
 
 			userArray = (EventsCreated[]) list.toArray(new EventsCreated[list
 					.size()]);
@@ -11729,6 +12022,49 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 		return userArray;
 
+	}
+
+	/*
+	 * code added by KUMAM1234 for Role Mapping for version 3.4 RFC#1136920
+	 */
+	public String[] getAllRoles() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] roles = null;
+
+		List<String> rolesList = new ArrayList<String>();
+
+		try {
+
+			String q1 = "select role_desc,role_cd from guest_trainer_manager_roles order by role_desc ";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object[] field = (Object[]) it.next();
+
+				if (field[0] == null || field[0] == "") {
+					rolesList.add((String) field[1]
+							+ "- Role description not available");
+				} else {
+					rolesList.add((String) field[0]);
+				}
+
+				roles = rolesList.toArray(new String[rolesList.size()]);
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return roles;
 	}
 
 	void gotoRemoveEvent(Integer eventId) {
@@ -11768,19 +12104,20 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 	public EventsCreated getEvent(EventsCreated events) {
 
-		// System.out.println("Inside Hibernate layer - getEvent"+ (events.getEventName()));
+		// System.out.println("Inside Hibernate layer - getEvent"+
+		// (events.getEventName()));
 		Session session = HibernateUtils.getHibernateSession();
 		EventsCreated userArray = null;
 
 		try {
 
-			String sql = "select event_id, PRODUCT, event_name, event_description, event_start_date, event_end_date, event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners from V_Event where EVENT_NAME =:eventName";
+			String sql = "select event_id, PRODUCT, event_name, event_description, event_start_date, event_end_date, event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners, bu_id from V_Event where EVENT_NAME =:eventName ORDER BY EVENT_CREATED_ON DESC";
 
 			String q1 = sql.toString();
 
 			// System.out.println("Adbhut - querry" + q1);
 			Query q = session.createSQLQuery(q1).addEntity(EventsCreated.class);
-			q.setParameter("eventName", events.getEventName());
+			q.setParameter("eventName", events.getEventName().trim());
 			List<Object> list = q.list();
 
 			// System.out.println("List size is::::::::: " + list.size());
@@ -11788,7 +12125,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			if (list.size() != 0) {
 
 				userArray = (EventsCreated) list.get(0);
-				// System.out.println("Adbhut Singh - Success "+ userArray.getEventName());
+				// System.out.println("Adbhut Singh - Success "+
+				// userArray.getEventName());
 
 			}
 
@@ -11812,7 +12150,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 			// queryString.append("insert into v_event (event_id, event_name, event_description, event_start_date, event_end_date, event_created_on,event_status");
 			queryString
-					.append("insert into v_event (event_id, event_name, event_description, event_start_date, event_end_date, event_created_on,event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners ) values (sq_event_created.nextval,:eventName,:eventDescription,to_date(:eventStartDate,'mm/dd/yyyy'),to_date(:eventEndDate,'mm/dd/yyyy'),sysdate,'INPROGRESS'");
+					.append("insert into v_event (event_id, event_name, event_description, event_start_date, event_end_date, event_created_on,event_status, eval_duration, number_of_eval, type_of_eval, number_of_learners,bu_id ) values (sq_event_created.nextval,:eventName,:eventDescription,to_date(:eventStartDate,'mm/dd/yyyy'),to_date(:eventEndDate,'mm/dd/yyyy'),sysdate,'INPROGRESS'");
 			if (events.getEvalDuration() != null) {
 				queryString.append(",:evalDuration");
 			} else {
@@ -11829,11 +12167,11 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 				queryString.append(",null");
 			}
 			if (events.getNumberOfLearners() != null) {
-				queryString.append(",:numberOfLearners )");
+				queryString.append(",:numberOfLearners ");
 			} else {
-				queryString.append(",null )");
+				queryString.append(",null ");
 			}
-
+			queryString.append(",:bu_id )");
 			/*
 			 * String nativeSql =
 			 * "insert into v_event (event_id, event_name, event_description, event_start_date, event_end_date, event_created_on,"
@@ -11856,16 +12194,18 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			 * + ":typeOfEval)";
 			 */
 			String nativeSql = queryString.toString();
-			// System.out.println("SQL generate for insert ::: ---" + nativeSql);
+			// System.out.println("SQL generate for insert ::: ---" +
+			// nativeSql);
 
 			Transaction ts = session.beginTransaction();
 
 			Query query = session.createSQLQuery(nativeSql);
 
-			query.setParameter("eventName", events.getEventName());
+			query.setParameter("eventName", events.getEventName().trim());
 			query.setParameter("eventDescription", events.getEventDescription());
 			query.setParameter("eventStartDate", events.getEventStartDate());
 			query.setParameter("eventEndDate", events.getEventEndDate());
+			query.setParameter("bu_id", events.getBusinessUnit());
 			// query.setParameter("product", events.getProduct()); ---- to check
 
 			if (events.getEvalDuration() != null) {
@@ -11885,8 +12225,11 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 						events.getNumberOfLearners());
 			}
 
-			// System.out.println(events.getEventName() + "  "+ events.getEventDescription() + " "+ events.getEventStartDate());
-			// System.out.println(events.getEventEndDate() + "  "+ events.getEvalDuration() + " " + events.getTypeOfEval()+ "   " + events.getNumberOfLearners() + " "+ events.getNumberOfEval());
+			// System.out.println(events.getEventName() + "  "+
+			// events.getEventDescription() + " "+ events.getEventStartDate());
+			// System.out.println(events.getEventEndDate() + "  "+
+			// events.getEvalDuration() + " " + events.getTypeOfEval()+ "   " +
+			// events.getNumberOfLearners() + " "+ events.getNumberOfEval());
 			// System.out.println("SQL generate for insert ::: ---" + query);
 
 			int i = query.executeUpdate();
@@ -11903,7 +12246,7 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 		} catch (HibernateException e) {
 
 			e.printStackTrace();
-			// System.out.println("createUser Hibernatate Exception");
+			System.out.println("createUser Hibernatate Exception");
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -11965,13 +12308,14 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 		try {
 
-			String sql = "select PRODUCT_DESC from MV_ATLAS_PRODUCT order by PRODUCT_DESC asc";
+			String sql = "select distinct PRODUCT_DESC from MV_ATLAS_PRODUCT order by PRODUCT_DESC asc";
 			String q1 = sql.toString();
 
 			Query q = session.createSQLQuery(q1);
 			List<String> list = q.list();
 
-			// System.out.println("Adbhut - List size for getEventName = "+ list.size());
+			// System.out.println("Adbhut - List size for getEventName = "+
+			// list.size());
 
 			strarray = list.toArray(new String[0]);
 
@@ -12002,8 +12346,6 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 			List<CourseDetails> newListCourse = new ArrayList<CourseDetails>();
 
-			
-
 			// System.out.println("size " + list.size());
 			Iterator it = list.iterator();
 
@@ -12018,10 +12360,13 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 				course.setCourseName((String) field[2]);
 
 				newListCourse.add(course);
-				// System.out.println("New Event Array CourseName =========="+ course.getCourseName() + "======== course id "+ course.getCourseId());
+				// System.out.println("New Event Array CourseName =========="+
+				// course.getCourseName() + "======== course id "+
+				// course.getCourseId());
 			}
 
-			// System.out.println("New EventCOurse List Array Length"+ newListCourse.size());
+			// System.out.println("New EventCOurse List Array Length"+
+			// newListCourse.size());
 
 			courseArray = newListCourse.toArray(new CourseDetails[newListCourse
 					.size()]);
@@ -12053,8 +12398,6 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			List list = q.list();
 
 			List<EventCourseProductMapping> newlistCourseProductMapping = new ArrayList<EventCourseProductMapping>();
-
-			
 
 			// System.out.println("size " + list.size());
 			Iterator it = list.iterator();
@@ -12095,7 +12438,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 			int i = query.executeUpdate();
 
-			// System.out.println(" execute result set - gotoSaveEventMapping "+ i);
+			// System.out.println(" execute result set - gotoSaveEventMapping "+
+			// i);
 			ts.commit();
 
 		} catch (HibernateException e) {
@@ -12158,7 +12502,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 			 */
 
 			String sql = queryBuilder.toString();
-			// System.out.println("SQL from updateEvent ===================    "+ sql);
+			// System.out.println("SQL from updateEvent ===================    "+
+			// sql);
 
 			ts = session.beginTransaction();
 			Query q = session.createSQLQuery(sql);
@@ -12198,9 +12543,9 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 	/*
 	 * public String[] retrieveScoringOptions(Integer evaluationTemplateId)
-	 * throws SQLException {
-	 * // System.out.println("inside retrieveScoringOptions method");
-	 * // System.out.println("value of evaluationTemplateId"+
+	 * throws SQLException { //
+	 * System.out.println("inside retrieveScoringOptions method"); //
+	 * System.out.println("value of evaluationTemplateId"+
 	 * evaluationTemplateId); Session session =
 	 * HibernateUtils.getHibernateSession(); StringBuilder queryString = new
 	 * StringBuilder(); List<String> ls = new ArrayList<String>(); String[]
@@ -12210,8 +12555,8 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * "where template_id = :evaluationTemplateId and (scoring_system_identifier is not null or scoring_system_identifier='')"
 	 * );
 	 * 
-	 * String q1 = queryString.toString();
-	 * // System.out.println("query formed is "+ q1); Query q =
+	 * String q1 = queryString.toString(); //
+	 * System.out.println("query formed is "+ q1); Query q =
 	 * session.createSQLQuery(q1); q.setParameter("evaluationTemplateId",
 	 * evaluationTemplateId);
 	 * 
@@ -12220,18 +12565,18 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 	 * List<String> newLs = new ArrayList<String>();
 	 * 
 	 * Iterator it = ls.iterator(); //String s = null; while(it.hasNext()) { //s
-	 * = new String(); // System.out.println("inside iterator"); //Object[] field =
-	 * (Object[]) it.next(); newLs.add((String) it.next()); }
-	 * // System.out.println("value of new list is"+ newLs); temp =
+	 * = new String(); // System.out.println("inside iterator"); //Object[]
+	 * field = (Object[]) it.next(); newLs.add((String) it.next()); } //
+	 * System.out.println("value of new list is"+ newLs); temp =
 	 * (String[])newLs.toArray(new String[newLs.size()]); } catch
 	 * (HibernateException e) { //
 	 * getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY, //
-	 * "getDistributionListFilters --> HibernateException : ", e);
-	 * // System.out.println("Exception in retrieveScoringOptions method");
+	 * "getDistributionListFilters --> HibernateException : ", e); //
+	 * System.out.println("Exception in retrieveScoringOptions method");
 	 * e.printStackTrace();
 	 * 
-	 * // log.error("HibernateException in getUserByNTIdAndDomain", e);
-	 * // System.out.println("getUserByNTIdAndDomain Hibernatate Exception"); }
+	 * // log.error("HibernateException in getUserByNTIdAndDomain", e); //
+	 * System.out.println("getUserByNTIdAndDomain Hibernatate Exception"); }
 	 * finally { HibernateUtils.closeHibernateSession(session); }
 	 * 
 	 * return temp; }
@@ -12593,399 +12938,1586 @@ queryString.append("select t.FIRST_NAME as firstName, t.LOCATION as location "
 
 	// Arpit code End
 	// After Merge
-	//*******************************************************************************************
-	
-	/*	--------------------------------------------------------------------------------------------------------*/  
-	/*  Added by manish to Get total available time per day of Guest trainer in hours  */
-		
-		
-		public TrainerLearnerMapping[] getevaluationHours(String date) throws SCEException {
-			
-			System.out.println("Before query for evaluation hours in SCEController");
+	// *******************************************************************************************
+
+	/*
+	 * --------------------------------------------------------------------------
+	 * ------------------------------
+	 */
+	/*
+	 * Added by manish to Get total available time per day of Guest trainer in
+	 * hours
+	 */
+
+	public TrainerLearnerMapping[] getevaluationHours(String date)
+			throws SCEException {
+
+		System.out
+				.println("Before query for evaluation hours in SCEController");
+		Session session = HibernateUtils.getHibernateSession();
+		TrainerLearnerMapping[] countOfEvalsPerHour = null;
+		StringBuilder queryString = new StringBuilder();
+
+		List<TrainerLearnerMapping> countOfEvalsPerHourList = new ArrayList<TrainerLearnerMapping>();
+
+		try {
+
+			queryString
+					.append("SELECT EMAIL,EVENT,PRODUCT,DATE_SEL,TOTAL_HOURS FROM TRAINER_EVENT_DATETIME_SLOTS ")
+					.append("where DATE_SEL=TO_DATE ('" + date
+							+ "','yyyy-mm-dd')+1" + "  order by EMAIL asc");
+
+			// .append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			// q.setParameter("date", date);
+
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			TrainerLearnerMapping trainerLearnerMapping = null;
+
+			while (it.hasNext()) {
+
+				trainerLearnerMapping = new TrainerLearnerMapping();
+				Object[] field = (Object[]) it.next();
+
+				trainerLearnerMapping.setTrainerEmail((String) field[0]);
+				trainerLearnerMapping.setEventName((String) field[1]);
+				trainerLearnerMapping.setProduct((String) field[2]);
+				trainerLearnerMapping.setCourseStartDate1(((Date) field[3])
+						.toString());
+				trainerLearnerMapping.setTotalHours((String) field[4]);
+
+				countOfEvalsPerHourList.add(trainerLearnerMapping);
+
+				System.out
+						.println("after query for evaluation hours in SCEController");
+
+			}
+			countOfEvalsPerHour = countOfEvalsPerHourList
+					.toArray(new TrainerLearnerMapping[countOfEvalsPerHourList
+							.size()]);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return countOfEvalsPerHour;
+	}
+
+	// ********************************************************************************************
+
+	/* Added by manish Get total timeSlots in string format */
+
+	public String getTimeSlots(String date, String email) throws SCEException {
+
+		System.out
+				.println("Before query for evaluation hours in SCEController");
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		String result = "";
+		try {
+
+			queryString.append(
+					"SELECT TIME_SLOTS FROM TRAINER_EVENT_DATETIME_SLOTS ")
+					.append("where EMAIL='" + email
+							+ "' AND DATE_SEL=TO_DATE ('" + date
+							+ "','mm-dd-yyyy')+1" + "  order by EMAIL asc");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			result = (String) q.uniqueResult();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		System.out.println("The result is:" + result);
+		return result;
+	}
+
+	/* Added by manish to Get first and last name of Guest trainer in hours */
+
+	public TrainerLearnerMapping[] getTrainerName(String email)
+			throws SCEException {
+
+		System.out.println("Before query for fetching TrainerName");
+		Session session = HibernateUtils.getHibernateSession();
+		TrainerLearnerMapping[] TrainerFandLname = null;
+		StringBuilder queryString = new StringBuilder();
+
+		List<TrainerLearnerMapping> TrainerFandLnameList = new ArrayList<TrainerLearnerMapping>();
+
+		try {
+
+			queryString
+					.append("SELECT REP_FNAME,REP_LNAME FROM guest_trainer ")
+					.append("where REP_EMAIL='" + email
+							+ "' order by REP_EMAIL asc");
+
+			// .append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			// q.setParameter("date", date);
+
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			TrainerLearnerMapping trainerLearnerMapping = null;
+
+			while (it.hasNext()) {
+
+				trainerLearnerMapping = new TrainerLearnerMapping();
+				Object[] field = (Object[]) it.next();
+
+				trainerLearnerMapping.setTrainerFname((String) field[0]);
+				trainerLearnerMapping.setTrainerLname((String) field[1]);
+
+				TrainerFandLnameList.add(trainerLearnerMapping);
+
+				System.out.println("After query for fetching TrainerName");
+
+			}
+			TrainerFandLname = TrainerFandLnameList
+					.toArray(new TrainerLearnerMapping[TrainerFandLnameList
+							.size()]);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return TrainerFandLname;
+	}
+
+	// ********************************************************************************************
+
+	/* Added by manish to Get date and time slots of Guest trainer in hours */
+
+	public TrainerLearnerMapping[] getTrainerSlots(String email,
+			String event_name, String mapId) throws SCEException {
+
+		System.out.println("Before query for fetching TrainerSlots");
+		Session session = HibernateUtils.getHibernateSession();
+		TrainerLearnerMapping[] TrainerDateAndTime = null;
+		StringBuilder queryString = new StringBuilder();
+
+		List<TrainerLearnerMapping> TrainerDateAndTimeList = new ArrayList<TrainerLearnerMapping>();
+
+		try {
+
+			queryString
+					.append("SELECT to_char(DATE_SEL, 'mm/dd/yyyy'),TIME_SLOTS FROM TRAINER_EVENT_DATETIME_SLOTS ")
+					.append("where EMAIL='" + email + "' AND EVENT='"
+							+ event_name + "' AND MAP_ID='" + mapId
+							+ "' order by DATE_SEL asc");
+
+			// .append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			// q.setParameter("date", date);
+
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			TrainerLearnerMapping trainerLearnerMapping = null;
+
+			while (it.hasNext()) {
+
+				trainerLearnerMapping = new TrainerLearnerMapping();
+				Object[] field = (Object[]) it.next();
+
+				trainerLearnerMapping.setSlotDate((field[0]).toString());
+				trainerLearnerMapping.setSlotTime(field[1].toString());
+
+				TrainerDateAndTimeList.add(trainerLearnerMapping);
+
+				System.out
+						.println("After query for fetching TrainerDate and slots");
+
+			}
+			TrainerDateAndTime = TrainerDateAndTimeList
+					.toArray(new TrainerLearnerMapping[TrainerDateAndTimeList
+							.size()]);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return TrainerDateAndTime;
+	}
+
+	// ********************************************************************************************
+
+	/* Added by manish Get NoOfevaluation in Integer format for manual mapping */
+
+	public Integer getNoOfEvaluations(String date, String email)
+			throws SCEException {
+
+		System.out
+				.println("Before query for evaluation hours in SCEController");
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		Integer result;
+		try {
+
+			queryString
+					.append("select (t.total_hours*60)/e.eval_duration AS noOfEvaluations from TRAINER_EVENT_DATETIME_SLOTS t INNER JOIN v_event e ")
+					.append("ON t.event=e.event_name WHERE t.date_sel=TO_DATE ('"
+							+ date
+							+ "','mm-dd-yyyy')+1"
+							+ " AND T.EMAIL='"
+							+ email + "' order by EMAIL asc");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			result = (Integer) q.uniqueResult();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		System.out.println("The result is:" + result);
+		return result;
+	}
+
+	// code added by manish to update template table
+
+	public void updateTemplate(TemplateVersion templateVersion)
+			throws SQLException {
+
+		Session session1 = HibernateUtils.getHibernateSession();
+		StringBuilder queryString1 = new StringBuilder();
+		System.out.println("modifiedBy " + templateVersion.getCreatedByNtid());
+		Transaction ts1 = session1.beginTransaction();
+		try {
+			// System.out.println("updateTemplateVersion1");
+
+			queryString1.append("UPDATE template set name =:formTitle ")
+					.append("WHERE template_id =:templateId");
+
+			String q1 = queryString1.toString();
+			System.out.println("query running for updating the template:"
+					+ queryString1);
+
+			Query q = session1.createSQLQuery(q1);
+			q.setParameter("formTitle", templateVersion.getFormTitle());
+
+			System.out.println("===============================");
+			System.out.println("Form Title:" + templateVersion.getFormTitle());
+			System.out.println("===============================");
+
+			q.setParameter("templateId", templateVersion.getTemplateId());
+
+			int result = q.executeUpdate();
+
+			// System.out.println("Result : " + result);
+			ts1.commit();
+			// System.out.println("updateTemplateVersion2");
+
+		} catch (HibernateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			HibernateUtils.closeHibernateSession(session1);
+		}
+
+	}
+
+	// code end
+
+	// code added by manish to update template_version table
+
+	public void updateTemplateVersion1(TemplateVersion templateVersion)
+			throws SQLException {
+
+		Session session1 = HibernateUtils.getHibernateSession();
+		StringBuilder queryString1 = new StringBuilder();
+		System.out.println("modifiedBy " + templateVersion.getCreatedByNtid());
+		Transaction ts1 = session1.beginTransaction();
+		try {
+			// System.out.println("updateTemplateVersion1");
+
+			queryString1.append(
+					"UPDATE template_version set form_title =:formTitle ")
+					.append("WHERE template_id =:templateId");
+
+			String q1 = queryString1.toString();
+			System.out.println("query running for updating the template:"
+					+ queryString1);
+
+			Query q = session1.createSQLQuery(q1);
+			q.setParameter("formTitle", templateVersion.getFormTitle());
+
+			System.out.println("===============================");
+			System.out.println("Form Title:" + templateVersion.getFormTitle());
+			System.out.println("===============================");
+
+			q.setParameter("templateId", templateVersion.getTemplateId());
+
+			int result = q.executeUpdate();
+
+			// System.out.println("Result : " + result);
+			ts1.commit();
+			// System.out.println("updateTemplateVersion2");
+
+		} catch (HibernateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			HibernateUtils.closeHibernateSession(session1);
+		}
+
+	}
+
+	// code end
+
+	// code added by manish to insert into request_access
+
+	public void insertRequest(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		try {
+
+			String nativeHql = "insert into request_access_user (lastname,firstname,email,emplId,ntid, "
+					+ "ntdomain,status,create_date "
+					+ ") values (:lastName,:firstName,:email,:emplId,:ntid, "
+					+ ":ntdomain,:status,sysdate) ";
+
+			Transaction ts = session.beginTransaction();
+
+			Query query = session.createSQLQuery(nativeHql);
+
+			query.setParameter("lastName", user.getLastName());
+			query.setParameter("firstName", user.getFirstName());
+			query.setParameter("email", user.getEmail());
+			query.setParameter("emplId", user.getEmplId());
+			query.setParameter("ntid", user.getNtid());
+			query.setParameter("ntdomain", user.getNtdomain());
+			query.setParameter("status", user.getStatus());
+
+			int i = query.executeUpdate();
+
+			ts.commit();
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// ------------------------------------------------------------------
+
+	public String getRequestUser(String ntid) throws SCEException {
+
+		StringBuilder queryString = new StringBuilder();
+		List<Object> User = new ArrayList<Object>();
+
+		if (ntid != null) {
+
 			Session session = HibernateUtils.getHibernateSession();
-			TrainerLearnerMapping[] countOfEvalsPerHour = null;
-			StringBuilder queryString = new StringBuilder();
-			
-			List<TrainerLearnerMapping> countOfEvalsPerHourList = new ArrayList<TrainerLearnerMapping>();
-			
+
 			try {
-				
-				queryString
-				.append("SELECT EMAIL,EVENT,PRODUCT,DATE_SEL,TOTAL_HOURS FROM TRAINER_EVENT_DATETIME_SLOTS ")
-				.append("where DATE_SEL=TO_DATE ('"+date+"','yyyy-mm-dd')+1"+"  order by EMAIL asc");
-				
-				//.append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
+
+				queryString.append("select ").append("ntid ")
+						.append("from request_access_user ").append("where ")
+						.append("upper(ntid) = upper(:ntid) ");
 
 				String q1 = queryString.toString();
-				System.out.println("query: "+q1);
 				Query q = session.createSQLQuery(q1);
-				
-				//q.setParameter("date", date);
-				
-				
-				
-				List list = q.list();
-				
-				Iterator it = list.iterator();
-				
-				TrainerLearnerMapping trainerLearnerMapping = null;
+				q.setParameter("ntid", ntid);
 
-				while (it.hasNext()) {
+				User = q.list();
 
-					trainerLearnerMapping = new TrainerLearnerMapping();
-					Object[] field = (Object[]) it.next();
-					
-					trainerLearnerMapping.setTrainerEmail((String) field[0]);
-					trainerLearnerMapping.setEventName((String) field[1]);
-					trainerLearnerMapping.setProduct((String) field[2]);
-					trainerLearnerMapping.setCourseStartDate1(((Date) field[3]).toString());
-					trainerLearnerMapping.setTotalHours((String) field[4]);
-					
-					
-
-					countOfEvalsPerHourList.add(trainerLearnerMapping);
-					
-					System.out.println("after query for evaluation hours in SCEController");
-					
-					
-					
-
-				}
-				countOfEvalsPerHour = countOfEvalsPerHourList.toArray(new TrainerLearnerMapping[countOfEvalsPerHourList.size()]);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			}
-			finally
-			{
-				HibernateUtils.closeHibernateSession(session);
-			}
-			
-			return countOfEvalsPerHour;
-		}
-	
-	//********************************************************************************************
-	
-/*  Added by manish Get total timeSlots in string format  */
-		
-		
-		public String getTimeSlots(String date,String email) throws SCEException {
-			
-			System.out.println("Before query for evaluation hours in SCEController");
-			Session session = HibernateUtils.getHibernateSession();
-			StringBuilder queryString = new StringBuilder();
-			String result="";
-			try {
-				
-				queryString
-				.append("SELECT TIME_SLOTS FROM TRAINER_EVENT_DATETIME_SLOTS ")
-				.append("where EMAIL='"+email+"' AND DATE_SEL=TO_DATE ('"+date+"','mm-dd-yyyy')+1"+"  order by EMAIL asc");
-				
-				
-
-				String q1 = queryString.toString();
-				System.out.println("query: "+q1);
-				Query q = session.createSQLQuery(q1);
-				
-				result = (String) q.uniqueResult();
-
-				
-				
-				
-				
-			
-				
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			}
-			finally
-			{
-				HibernateUtils.closeHibernateSession(session);
-			}
-			System.out.println("The result is:"+result);
-			return result;
-		}
-		
-		
-/*  Added by manish to Get first and last name of Guest trainer in hours  */
-		
-		
-		public TrainerLearnerMapping[] getTrainerName(String email) throws SCEException {
-			
-			System.out.println("Before query for fetching TrainerName");
-			Session session = HibernateUtils.getHibernateSession();
-			TrainerLearnerMapping[] TrainerFandLname = null;
-			StringBuilder queryString = new StringBuilder();
-			
-			List<TrainerLearnerMapping> TrainerFandLnameList = new ArrayList<TrainerLearnerMapping>();
-			
-			try {
-				
-				queryString
-				.append("SELECT REP_FNAME,REP_LNAME FROM guest_trainer ")
-				.append("where REP_EMAIL='"+email+"' order by REP_EMAIL asc");
-				
-				//.append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
-
-				String q1 = queryString.toString();
-				System.out.println("query: "+q1);
-				Query q = session.createSQLQuery(q1);
-				
-				//q.setParameter("date", date);
-				
-				
-				
-				List list = q.list();
-				
-				Iterator it = list.iterator();
-				
-				TrainerLearnerMapping trainerLearnerMapping = null;
-
-				while (it.hasNext()) {
-
-					trainerLearnerMapping = new TrainerLearnerMapping();
-					Object[] field = (Object[]) it.next();
-					
-					trainerLearnerMapping.setTrainerFname((String) field[0]);
-					trainerLearnerMapping.setTrainerLname((String) field[1]);
-					
-					
-					
-
-					TrainerFandLnameList.add(trainerLearnerMapping);
-					
-					System.out.println("After query for fetching TrainerName");
-					
-					
-					
-
-				}
-				TrainerFandLname = TrainerFandLnameList.toArray(new TrainerLearnerMapping[TrainerFandLnameList.size()]);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			}
-			finally
-			{
-				HibernateUtils.closeHibernateSession(session);
-			}
-			
-			return TrainerFandLname;
-		}
-	
-	//********************************************************************************************
-		
-/*  Added by manish to Get date and time slots of Guest trainer in hours  */
-		
-		
-		public TrainerLearnerMapping[] getTrainerSlots(String email,String event_name,String mapId) throws SCEException {
-			
-			System.out.println("Before query for fetching TrainerSlots");
-			Session session = HibernateUtils.getHibernateSession();
-			TrainerLearnerMapping[] TrainerDateAndTime = null;
-			StringBuilder queryString = new StringBuilder();
-			
-			List<TrainerLearnerMapping> TrainerDateAndTimeList = new ArrayList<TrainerLearnerMapping>();
-			
-			try {
-				
-				queryString
-				.append("SELECT to_char(DATE_SEL, 'mm/dd/yyyy'),TIME_SLOTS FROM TRAINER_EVENT_DATETIME_SLOTS ")
-				.append("where EMAIL='"+email+"' AND EVENT='"+event_name+"' AND MAP_ID='"+mapId+"' order by DATE_SEL asc");
-				
-				//.append("like :eventName AND TRUNC (course_start_date) = TO_DATE (:courseStartDate, 'yyyy-mm-dd') group by trainer_email,trainer_name ");
-
-				String q1 = queryString.toString();
-				System.out.println("query: "+q1);
-				Query q = session.createSQLQuery(q1);
-				
-				//q.setParameter("date", date);
-				
-				
-				
-				List list = q.list();
-				
-				Iterator it = list.iterator();
-				
-				TrainerLearnerMapping trainerLearnerMapping = null;
-
-				while (it.hasNext()) {
-
-					trainerLearnerMapping = new TrainerLearnerMapping();
-					Object[] field = (Object[]) it.next();
-					
-					trainerLearnerMapping.setSlotDate((field[0]).toString());
-					trainerLearnerMapping.setSlotTime( field[1].toString());
-					
-					
-					
-
-					TrainerDateAndTimeList.add(trainerLearnerMapping);
-					
-					System.out.println("After query for fetching TrainerDate and slots");
-					
-					
-					
-
-				}
-				TrainerDateAndTime = TrainerDateAndTimeList.toArray(new TrainerLearnerMapping[TrainerDateAndTimeList.size()]);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			}
-			finally
-			{
-				HibernateUtils.closeHibernateSession(session);
-			}
-			
-			return TrainerDateAndTime;
-		}
-	
-	//********************************************************************************************
-		
-/*  Added by manish Get NoOfevaluation in Integer format for manual mapping  */
-		
-		
-		public Integer getNoOfEvaluations(String date,String email) throws SCEException {
-			
-			System.out.println("Before query for evaluation hours in SCEController");
-			Session session = HibernateUtils.getHibernateSession();
-			StringBuilder queryString = new StringBuilder();
-			Integer result;
-			try {
-				
-				queryString
-				.append("select (t.total_hours*60)/e.eval_duration AS noOfEvaluations from TRAINER_EVENT_DATETIME_SLOTS t INNER JOIN v_event e ")
-				.append("ON t.event=e.event_name WHERE t.date_sel=TO_DATE ('"+date+"','mm-dd-yyyy')+1"+" AND T.EMAIL='"+email+"' order by EMAIL asc");
-				
-				
-				
-
-				String q1 = queryString.toString();
-				System.out.println("query: "+q1);
-				Query q = session.createSQLQuery(q1);
-				
-				result = (Integer) q.uniqueResult();
-
-				
-				
-				
-				
-			
-				
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SCEException("error.sce.unknown", e);
-			}
-			finally
-			{
-				HibernateUtils.closeHibernateSession(session);
-			}
-			System.out.println("The result is:"+result);
-			return result;
-		}
-		
-		//code added by manish to update template table
-		
-		public void updateTemplate(TemplateVersion templateVersion)
-				throws SQLException {
-
-			Session session1 = HibernateUtils.getHibernateSession();
-			StringBuilder queryString1 = new StringBuilder();
-	System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
-			Transaction ts1 = session1.beginTransaction();
-			try {
-				// System.out.println("updateTemplateVersion1");
-
-				queryString1
-						.append("UPDATE template set name =:formTitle ")
-							.append("WHERE template_id =:templateId");
-				
-				
-				String q1 = queryString1.toString();
-				System.out.println("query running for updating the template:" + queryString1);
-
-				Query q = session1.createSQLQuery(q1);
-				q.setParameter("formTitle", templateVersion.getFormTitle());
-				
-				System.out.println("===============================");
-				System.out.println("Form Title:"+templateVersion.getFormTitle());
-				System.out.println("===============================");
-				
-				q.setParameter("templateId", templateVersion.getTemplateId());
-				
-				
-
-				int result = q.executeUpdate();
-
-				// System.out.println("Result : " + result);
-				ts1.commit();
-				// System.out.println("updateTemplateVersion2");
-				
+				System.out.println("=============================");
+				System.out.println("List size of request_access_users:"
+						+ User.size());
+				System.out.println("==============================");
 			} catch (HibernateException e) {
-				// TODO Auto-generated catch block
+				// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+				// "getDistributionListFilters --> HibernateException : ", e);
 				e.printStackTrace();
-			} finally {
-				HibernateUtils.closeHibernateSession(session1);
+
+				log.error("HibernateException in getSalesPositionTypeCd", e);
+				// System.out.println("HibernateException in getSalesPositionTypeCd");
+			}
+
+			finally {
+				HibernateUtils.closeHibernateSession(session);
 			}
 
 		}
+		return (User.size() > 0) ? (String) User.get(0) : null;
+	}
 
-	//code end	
-		
-		
-	//code added by manish to update template_version table
-		
-		public void updateTemplateVersion1(TemplateVersion templateVersion)
-				throws SQLException {
+	// code end
 
-			Session session1 = HibernateUtils.getHibernateSession();
-			StringBuilder queryString1 = new StringBuilder();
-	System.out.println("modifiedBy "+templateVersion.getCreatedByNtid());
-			Transaction ts1 = session1.beginTransaction();
+	public String requestUserStatus(String ntid) {
+
+		StringBuilder queryString = new StringBuilder();
+		List<Object> User = new ArrayList<Object>();
+
+		if (ntid != null) {
+
+			Session session = HibernateUtils.getHibernateSession();
+
 			try {
-				// System.out.println("updateTemplateVersion1");
 
-				queryString1
-						.append("UPDATE template_version set form_title =:formTitle ")
-							.append("WHERE template_id =:templateId");
-				
-				
-				String q1 = queryString1.toString();
-				System.out.println("query running for updating the template:" + queryString1);
+				queryString.append("select ").append("status ")
+						.append("from request_access_user ").append("where ")
+						.append("upper(ntid) = upper(:ntid) ");
 
-				Query q = session1.createSQLQuery(q1);
-				q.setParameter("formTitle", templateVersion.getFormTitle());
-				
-				System.out.println("===============================");
-				System.out.println("Form Title:"+templateVersion.getFormTitle());
-				System.out.println("===============================");
-				
-				q.setParameter("templateId", templateVersion.getTemplateId());
-				
-				
+				String q1 = queryString.toString();
+				Query q = session.createSQLQuery(q1);
+				q.setParameter("ntid", ntid);
 
-				int result = q.executeUpdate();
+				User = q.list();
 
-				// System.out.println("Result : " + result);
-				ts1.commit();
-				// System.out.println("updateTemplateVersion2");
-				
+				System.out.println("=============================");
+				System.out.println("List size of request_access_users:"
+						+ User.size());
+				System.out.println("==============================");
 			} catch (HibernateException e) {
-				// TODO Auto-generated catch block
+				// getServiceBean().logError(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+				// "getDistributionListFilters --> HibernateException : ", e);
 				e.printStackTrace();
-			} finally {
-				HibernateUtils.closeHibernateSession(session1);
+
+				log.error("HibernateException in getSalesPositionTypeCd", e);
+				// System.out.println("HibernateException in getSalesPositionTypeCd");
+			}
+
+			finally {
+				HibernateUtils.closeHibernateSession(session);
+			}
+
+		}
+		return (User.size() > 0) ? (String) User.get(0) : null;
+	}
+
+	// code end
+
+	public void updateRequestUserStatus(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		try {
+
+			String nativeHql = "update request_access_user set status='APPROVED' WHERE upper(ntid)=upper(:ntid) ";
+
+			Transaction ts = session.beginTransaction();
+
+			Query query = session.createSQLQuery(nativeHql);
+
+			query.setParameter("ntid", user.getNtid());
+
+			int i = query.executeUpdate();
+
+			ts.commit();
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// start code
+
+	public void updateRequest(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		try {
+
+			String nativeHql = "update request_access_user set status='REQUESTED' WHERE upper(ntid)=upper(:ntid) ";
+
+			Transaction ts = session.beginTransaction();
+
+			Query query = session.createSQLQuery(nativeHql);
+
+			query.setParameter("ntid", user.getNtid());
+
+			int i = query.executeUpdate();
+
+			ts.commit();
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// start code to reject req user ststus
+
+	public void rejectRequestUserStatus(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		try {
+
+			String nativeHql = "update request_access_user set status='REJECTED' WHERE upper(ntid)=upper(:ntid) ";
+			Transaction ts = session.beginTransaction();
+			Query query = session.createSQLQuery(nativeHql);
+			query.setParameter("ntid", user.getNtid());
+
+			int i = query.executeUpdate();
+			ts.commit();
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	/*
+	 * @manish for getting total approvers *
+	 */
+
+	public User[] getApprovers() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		User[] email = null;
+		StringBuilder queryString = new StringBuilder();
+
+		List<User> emailList = new ArrayList<User>();
+
+		try {
+
+			queryString.append(" select email from request_approvers ");
+
+			String q1 = queryString.toString();
+			System.out.println("query: " + q1);
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+
+			System.out.println("List size:" + list.size());
+			Iterator it = list.iterator();
+			User user = new User();
+
+			while (it.hasNext()) {
+
+				user = new User();
+				Object field = (Object) it.next();
+				user.setRequestApprovers((field).toString());
+
+				emailList.add(user);
+			}
+			email = emailList.toArray(new User[emailList.size()]);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return email;
+	}
+
+	/* code added by shaikh07 for Role Mapping for version 3.4 RFC#1136920 */
+	public String[] getRoles() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] roles = null;
+
+		List<String> rolesList = new ArrayList<String>();
+
+		try {
+
+			String q1 = " SELECT DISTINCT ROLE_DESC FROM MV_SALES_POSITION_TRA WHERE role_cd not IN "
+					+ "( SELECT ROLE_CD FROM guest_trainer_manager_roles) order by role_desc ";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				rolesList.add(field.toString());
+
+			}
+			roles = rolesList.toArray(new String[rolesList.size()]);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return roles;
+	}
+
+	/* code added by shaikh07 for Role Mapping for version 3.4 RFC#1136920 */
+	public int saveRoles(String roleCd, String roleDescription)
+			throws SCEException {
+
+		int status = 0;
+		Session session = HibernateUtils.getHibernateSession();
+		try {
+
+			String nativeHql = "insert into guest_trainer_manager_roles (ROLE_ID,ROLE_CD,ROLE_DESC) "
+					+ "VALUES (seq_role_id.nextval, "
+					+ ":roleCd,"
+					+ ":roleDescription)";
+
+			Transaction ts = session.beginTransaction();
+			Query query = session.createSQLQuery(nativeHql);
+			query.setParameter("roleCd", roleCd);
+			query.setParameter("roleDescription", roleDescription);
+			status = query.executeUpdate();
+			ts.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return status;
+	}
+
+	// start code by manish to remove approvers
+
+	public void removeApprover() {
+
+		Session session = HibernateUtils.getHibernateSession();
+		Transaction ts = null;
+
+		try {
+
+			String sql = "DELETE from request_approvers ";
+
+			ts = session.beginTransaction();
+			Query q = session.createSQLQuery(sql);
+
+			int i = q.executeUpdate();
+
+			ts.commit();
+
+		} catch (HibernateException e) {
+			e.printStackTrace();
+
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		// return user;
+
+	}
+
+	// end code
+
+	// code added by manish to insert into request_approvers
+
+	public void insertApprover(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		try {
+
+			String nativeHql = "insert into request_approvers (email,type) "
+					+ "SELECT :email1, 'App Owner' FROM DUAL " + "UNION "
+					+ "SELECT :email2, 'Buisness Owner 1' FROM DUAL "
+					+ "UNION "
+					+ "SELECT :email3, 'Buisness Owner 2' FROM DUAL ";
+
+			Transaction ts = session.beginTransaction();
+
+			System.out.println("query executed:" + nativeHql);
+
+			Query query = session.createSQLQuery(nativeHql);
+
+			query.setParameter("email1", user.getRequestApprover1());
+			query.setParameter("email2", user.getRequestApprover2());
+			query.setParameter("email3", user.getRequestApprover3());
+
+			int i = query.executeUpdate();
+
+			ts.commit();
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// ------------------------------------------------------------------
+
+	/*
+	 * code added by KUMAM1234 for Guest Trainer manager+Direct Report to check
+	 * if the user is the reporting manager for version 3.4 RFC#1136920
+	 */
+	public String checkIfReportingManager(String guestTrainerEmplid,
+			String checkEmplId) throws SCEException {
+		System.out
+				.println("Before query for checkIfReportingManager in SCEController");
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		String result;
+		String checkResult;
+		try {
+
+			queryString
+					.append(" select emplid from mv_field_employee_rbu where emplid ='"
+							+ checkEmplId
+							+ "'  and reports_to_emplid = '"
+							+ guestTrainerEmplid + "'  ");
+
+			String q1 = queryString.toString();
+			Query q = session.createSQLQuery(q1);
+
+			checkEmplId = (String) q.uniqueResult();
+			if (checkEmplId == null) {
+				result = "false";
+			} else {
+				result = "true";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		System.out.println("The result is:" + result);
+		return result;
+	}
+
+	/*
+	 * code added by KUMAM1234 for Role Mapping to delete the mapped role from
+	 * ODS for version 3.4 RFC#1136920
+	 */
+	// updated by muzees for erroro in deletion
+	public void deleteRole(String roleCd) throws SQLException, SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		CourseEvalTemplateMapping[] mappingsForTemplates = null;
+		Transaction ts = null;
+		StringBuilder queryString = new StringBuilder();
+
+		try {
+			/* System.out.println("RoleCd:" + roleCd); */
+			queryString.append("delete from guest_trainer_manager_roles ")
+					.append("where role_cd =:role_cd ");
+
+			String q1 = queryString.toString();
+
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("role_cd", roleCd);
+			ts = session.beginTransaction();
+			// int result =
+			q.executeUpdate();
+			ts.commit();
+			// return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// added bu manish to hide the seleted evaluation form
+	public int hideForm(String formId) throws SQLException, SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		CourseEvalTemplateMapping[] mappingsForTemplates = null;
+		Transaction ts = null;
+		StringBuilder queryString = new StringBuilder();
+
+		try {
+			/* System.out.println("RoleCd:" + roleCd); */
+			queryString.append("update template set hidden='Y' ").append(
+					"where TEMPLATE_ID =:form_id ");
+
+			String q1 = queryString.toString();
+
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("form_id", formId);
+			ts = session.beginTransaction();
+			int result = q.executeUpdate();
+			ts.commit();
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	// added bu manish to unhide the seleted evaluation form
+	public int unHideForm(String formId) throws SQLException, SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		CourseEvalTemplateMapping[] mappingsForTemplates = null;
+		Transaction ts = null;
+		StringBuilder queryString = new StringBuilder();
+
+		try {
+			/* System.out.println("RoleCd:" + roleCd); */
+			queryString.append("update template set hidden='N' ").append(
+					"where TEMPLATE_ID =:form_id ");
+
+			String q1 = queryString.toString();
+
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("form_id", formId);
+			ts = session.beginTransaction();
+			int result = q.executeUpdate();
+			ts.commit();
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+	}
+
+	/*
+	 * Start of PBG and UpJOHN 2019 MUZEES Start
+	 */
+	// to filter Non-USField BU,All
+	public String[] getBUList() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] bu = null;
+
+		List<String> buList = new ArrayList<String>();
+
+		try {
+
+			String q1 = " SELECT DISTINCT BUSINESS_UNIT FROM BUSINESS_UNITS where key not in ('3','4')  ORDER BY BUSINESS_UNIT ASC ";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				buList.add(field.toString());
+
+			}
+			bu = buList.toArray(new String[buList.size()]);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return bu;
+	}
+
+	// to fetch Non-USField BU
+	public String getNonUSBUID() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String bu = null;
+		try {
+
+			String q1 = " SELECT DISTINCT BUSINESS_UNIT FROM BUSINESS_UNITS Where key=3";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				bu = field.toString();
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return bu;
+	}
+
+	public String getAllBUID() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String bu = null;
+		try {
+
+			String q1 = " SELECT DISTINCT BUSINESS_UNIT FROM BUSINESS_UNITS Where key=4";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				bu = field.toString();
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return bu;
+	}
+
+	public String[] getAllBUList() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] bu = null;
+
+		List<String> buList = new ArrayList<String>();
+
+		try {
+
+			String q1 = " SELECT DISTINCT BUSINESS_UNIT FROM BUSINESS_UNITS ORDER BY BUSINESS_UNIT ASC ";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				buList.add(field.toString());
+
+			}
+			bu = buList.toArray(new String[buList.size()]);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return bu;
+	}
+
+	public String[] getEventNameByBU(String businessUnit) throws SCEException {
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		String[] strings = null;
+		String string = new String();
+		List list = null;
+		List<String> strList = new ArrayList<String>();
+		try {
+			queryString
+					.append("select EVENT_NAME from V_EVENT where EVENT_STATUS IN ( 'ACTIVE','INPROGRESS') and BU_ID=:bu_id ORDER BY EVENT_CREATED_ON DESC");
+			String q1 = queryString.toString();
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("bu_id", businessUnit);
+			strList = q.list();
+
+			if (strList != null) {
+
+				strings = strList.toArray(new String[strList.size()]);
+			}
+
+		} catch (HibernateException e) {
+
+			e.printStackTrace();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return strings;
+	}
+
+	public String[] getProductForEventbyBu(String businessUnit)
+			throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] strarray = null;
+
+		try {
+
+			String sql = "select distinct PRODUCT_DESC from MV_ATLAS_PRODUCT "
+					+ "where SALES_ORGANIZATION_DESC in(SELECT DISTINCT SALES_ORGANIZATION FROM BU_SALESORG_MAPPING WHERE MAPPED_BU=:bu_id) "
+					+ "order by PRODUCT_DESC asc";
+			String q1 = sql.toString();
+
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("bu_id", businessUnit);
+			List<String> list = q.list();
+			strarray = list.toArray(new String[0]);
+
+		} catch (HibernateException e) {
+			e.printStackTrace();
+			// System.out.println("Hibernatate Exception");
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return strarray;
+	}
+
+	public BU[] getAllMappedSalesOrg(String nonUSfieldBU) throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+
+		BU[] salesOrgBuList = null;
+
+		List<BU> buList = new ArrayList<BU>();
+
+		try {
+
+			String q1 = "select distinct SALES_ORGANIZATION ,mapped_bu from BU_SALESORG_MAPPING where MAPPED_BU !=:bu_id order by SALES_ORGANIZATION";
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("bu_id", nonUSfieldBU);
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			System.out.println("List size:" + list.size());
+			Iterator it1 = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object[] obj = (Object[]) it.next();
+
+				String salesOrg = String.valueOf(obj[0]);
+				String mappedBU = String.valueOf(obj[1]);
+				BU user = new BU();
+
+				user.setMappedBU(mappedBU);
+				user.setSalesOrg(salesOrg);
+
+				buList.add(user);
+
+			}
+
+			BU arr[] = new BU[buList.size()];
+
+			salesOrgBuList = buList.toArray(arr);
+			System.out.println("array=" + Arrays.toString(salesOrgBuList));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return salesOrgBuList;
+	}
+
+	public String[] getSalesOrg() throws SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		String[] salesorgList = null;
+
+		List<String> listofSalesOrg = new ArrayList<String>();
+
+		try {
+
+			String q1 = "SELECT DISTINCT SALES_ORGANIZATION_DESC FROM mv_sales_position_tra where SALES_ORGANIZATION_DESC NOT IN"
+					+ "(SELECT DISTINCT SALES_ORGANIZATION from BU_SALESORG_MAPPING) ORDER BY SALES_ORGANIZATION_DESC";
+			Query q = session.createSQLQuery(q1);
+
+			List list = q.list();
+			Iterator it = list.iterator();
+
+			while (it.hasNext()) {
+
+				Object field = (Object) it.next();
+				listofSalesOrg.add(field.toString());
+
+			}
+			salesorgList = listofSalesOrg.toArray(new String[listofSalesOrg
+					.size()]);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		return salesorgList;
+	}
+
+	public int saveBUMapping(String businessUnit, String salesOrganisation)
+			throws SCEException {
+
+		int status = 0;
+		Session session = HibernateUtils.getHibernateSession();
+		try {
+
+			String nativeHql = "insert into BU_SALESORG_MAPPING (SALES_ORGANIZATION,MAPPED_BU) "
+					+ "VALUES (:salesOrganisation,:businessUnit)";
+			Transaction ts = session.beginTransaction();
+			Query query = session.createSQLQuery(nativeHql);
+			query.setParameter("businessUnit", businessUnit);
+			query.setParameter("salesOrganisation", salesOrganisation);
+			status = query.executeUpdate();
+			ts.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return status;
+	}
+
+	public void deleteSalesOrg(String salesOrganisation) throws SQLException,
+			SCEException {
+
+		Session session = HibernateUtils.getHibernateSession();
+		Transaction ts = null;
+		StringBuilder queryString = new StringBuilder();
+		try {
+
+			queryString.append("delete from BU_SALESORG_MAPPING ").append(
+					"where SALES_ORGANIZATION =:salesOrganisation");
+
+			String q1 = queryString.toString();
+
+			Query q = session.createSQLQuery(q1);
+			q.setParameter("salesOrganisation", salesOrganisation);
+			ts = session.beginTransaction();
+			q.executeUpdate();
+			ts.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SCEException("error.sce.unknown", e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		System.out.println(result);
+
+	}
+
+	public void updateOverNightGT(User user) {
+
+		Session session = HibernateUtils.getHibernateSession();
+		Transaction ts = null;
+		try {
+
+			String sql = "UPDATE users us set us.BU_ID=:bu_id , us.BU_UPDATED='YES' where us.USER_ID = :userId";
+			ts = session.beginTransaction();
+			Query q = session.createSQLQuery(sql);
+
+			q.setParameter("userId", user.getId());
+			q.setParameter("bu_id", user.getBusinessUnit());
+			q.executeUpdate();
+			ts.commit();
+
+		} catch (HibernateException e) {
+			e.printStackTrace();
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+		// end of MUZEES
+	}
+
+	/* 2020 Q3: Start of muzees for multiple evaluation */
+	public boolean checkduplicate(SCE checkSCE, SCE newSCE) {
+		Session session = HibernateUtils.getHibernateSession();
+		Transaction ts = null;
+
+		try {
+			String sql = null;
+			sql = "select count(*) from TR.V_USP_SCE_REGISTERED where emplid='"
+					+ checkSCE.getEmplId()
+					+ "' and activity_pk='"
+					+ checkSCE.getProductCode()
+					+ "' and REGISTRATION_DATE>(select SUBMITTED_DATE from sales_call.sce_fft where sce_id="
+					+ checkSCE.getId() + ")";
+			Query q = session.createSQLQuery(sql);
+			List list = q.list();
+			Integer multipleCount = ((BigDecimal) list.get(0)).intValue();
+			// check for multiple registration
+			if (multipleCount > 0)
+				return false;
+			// if it not multiple registration check for LMS flag
+			sql = "select distinct lms_flag from sales_call.evaluation_form_score where template_version_id = "
+					+ checkSCE.getTemplateVersionId()
+					+ " and Score_legend = '"
+					+ checkSCE.getOverallRating() + "'";
+			q = session.createSQLQuery(sql);
+			String latestLMSFlag = null;
+			list = q.list();
+			if (list.size() > 0) {
+				latestLMSFlag = ((Character) list.get(0)).toString();
+				if (latestLMSFlag.equalsIgnoreCase("Y")) {
+					return true;
+				}
+			}
+			// if latest evaluation flag is 'N' check for new LMS flag and
+			// submitted date
+			if (newSCE != null) {
+				sql = "select distinct lms_flag from sales_call.evaluation_form_score where template_version_id = "
+						+ newSCE.getTemplateVersionId()
+						+ " and Score_legend = '"
+						+ newSCE.getOverallRating()
+						+ "'";
+				q = session.createSQLQuery(sql);
+				if (list.size() > 0) {
+					list = q.list();
+					String newLMSFlag = ((Character) list.get(0)).toString();
+					if (newLMSFlag.equalsIgnoreCase("Y"))
+						return false;
+				}
+				DateFormat dateFormatter = new SimpleDateFormat(
+						SCEUtils.DEFAULT_DATE_FORMAT);
+				if (newSCE.getSubmittedDate() != null) {
+					if (dateFormatter.format(newSCE.getSubmittedDate())
+							.compareTo(
+									dateFormatter.format(checkSCE
+											.getSubmittedDate())) == 0) {
+						return true;
+
+					} else
+						return false;
+				} else {
+					if (dateFormatter.format(new Date()).compareTo(
+							dateFormatter.format(checkSCE.getSubmittedDate())) == 0) {
+						return true;
+
+					} else
+						return false;
+				}
+
 			}
 
 		}
 
-	//code end
+		catch (Exception e) {
+			System.out.println("Exception Message:" + e.getMessage());
+			e.printStackTrace();
+			log.error(e, e);
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
 
+		return false;
+	}
+	
+
+	public List<SCE> getListSCE(String emplId, Integer eventId,
+			String productCode, String status) {
+
+		Session session = HibernateUtils.getHibernateSession();
+		StringBuilder queryString = new StringBuilder();
+		List<SCE> newTemp = new ArrayList<SCE>();
+		try {
+
+			queryString
+					.append("SELECT s.sce_id, e.lms_flag")
+					.append(" FROM sce_fft s, evaluation_form_score e")
+					.append(" WHERE s.template_version_id = e.template_version_id")
+					.append(" AND e.Score_legend = s.OVERALL_RATING")
+					.append(" AND s.emplid = :emplId")
+					.append(" AND s.product_cd = :productCode")
+					.append(" AND s.event_id = :eventId")
+					.append(" AND status = :status")
+					.append(" ORDER BY sce_id DESC");
+
+			String q1 = queryString.toString();
+			Query q = session.createSQLQuery(q1);
+
+			q.setParameter("emplId", emplId);
+			q.setParameter("eventId", eventId);
+			q.setParameter("productCode", productCode);
+			q.setParameter("status", status);
+
+			List list = q.list();
+
+			Iterator it = list.iterator();
+
+			SCE sce = null;
+			while (it.hasNext()) {
+				sce = new SCE();
+				Object[] field = (Object[]) it.next();
+
+				sce.setId(field[0] != null ? ((BigDecimal) field[0]).intValue()
+						: null);
+				sce.setLmsFlag(((Character) field[1]).toString());
+				newTemp.add(sce);
+			}
+
+		} catch (HibernateException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return newTemp;
+
+	}// end of MUZEES
+	/* 2020 Q3,Q4: Start of MUZEES for registartion date with time */
+	public Date minRegistrationDate(String emplid, String eventid,
+			String productCode) {
+		Session session = HibernateUtils.getHibernateSession();
+		Transaction ts = null;
+		Date registrationDate = null;
+		String regSql = null;
+		String sql = null;
+		Query q = null;
+		boolean latestSCEExist = false;
+		List list = null;
+		Iterator it = null;
+		String sce_id = null;
+		try {
+			List<SCE> listSCE = getListSCE(emplid, Integer.parseInt(eventid),
+					productCode, SCEConstants.ST_SUBMITTED);
+
+			for (int i = 0; i < listSCE.size(); i++) {
+				if (listSCE.get(i).getLmsFlag().equalsIgnoreCase("Y")) {
+					latestSCEExist = true;
+					sce_id = "" + listSCE.get(i).getId();
+					break;
+				} else {
+					latestSCEExist = false;
+				}
+			}
+
+			regSql = "select MIN(REGISTRATION_DATE) from TR.V_USP_SCE_REGISTERED where emplid='"
+					+ emplid + "' and activity_pk='" + productCode;
+			if (latestSCEExist) {
+
+				regSql = regSql
+						+ "' and REGISTRATION_DATE>(select SUBMITTED_DATE from sales_call.sce_fft where sce_id="
+						+ sce_id + ")";
+			} else
+				regSql = regSql + "'";
+			q = session.createSQLQuery(regSql);
+					/*.addScalar("REGISTRATION_DATE",
+					org.hibernate.type.TimestampType.INSTANCE);*/
+			list = q.list();
+			it = list.iterator();
+			while (it.hasNext()) {
+				registrationDate = (Date) it.next();
+			}
+
+		} catch (Exception e) {
+			System.out.println("Exception Message:" + e.getMessage());
+		} finally {
+			HibernateUtils.closeHibernateSession(session);
+		}
+
+		return registrationDate;
+	}//end of muzees
+	
+
+	// Start: SHINDO : Added for OAUTH changes to invoke OAUTH URL's and retrieve user NTID, EMPLID,NTDOMAIN
+	
+		public String getAuthenticatedUserID(HttpServletRequest request,HttpServletResponse response) {
+			Session session = HibernateUtils.getHibernateSession();
+			String res = null;
+			StringBuilder queryString = new StringBuilder();
+		
+				// getServiceBean().logDebug(SystemConstants.TMSCORE_SERVICE_LOGNAME_KEY,
+				// "start of getAdhocDistributionListMember");
+
+				// System.out.println("quer1" + queryString);
+				
+
+				// System.out.println("HelloBean Hibernatate Exception");
+			
+			String username = null;
+			String userDomain=null;
+			String userEmplid=null;
+			//String q1 = " select u.emplid as emplId from users u where upper(u.ntid) = upper(:ntid) ";
+			
+
+
+			System.out.println("Authcode: " + request.getParameter("authcode"));
+
+			String authCode = request.getParameter("authcode") != null ? request
+					.getParameter("authcode") : null;
+					
+			
+			
+			if (authCode != null) {
+
+				Long errorcode = null;
+				System.out.println(SCEConstants.OAUTH_TOKEN_URL + authCode
+									+ "&redirect_uri="
+									+ SCEConstants.OAUTH_REDIRECT_URI
+									+SCEConstants.OAUTH_GET_TOKEN_AUTHORIZATION);
+
+			}
+			
+			Long errorcode=null;
+			
+			
+			try {	
+				
+				SSLContext sslContext = SSLContext.getInstance("TLSv1.2"); 
+				sslContext.init(null, null, new SecureRandom());
+				
+			
+				URL url = new URL(
+						SCEConstants.OAUTH_TOKEN_URL + authCode
+						+ "&redirect_uri="
+						+ SCEConstants.OAUTH_REDIRECT_URI);
+				System.out.println("url: "+url);
+				
+				HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+				conn.setSSLSocketFactory(sslContext.getSocketFactory());
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded:");
+                conn.setRequestProperty("Authorization",SCEConstants.OAUTH_GET_TOKEN_AUTHORIZATION);
+                System.out.println("Author: "+SCEConstants.OAUTH_GET_TOKEN_AUTHORIZATION);
+
+                if (conn.getResponseCode() != 200) {
+                    throw new RuntimeException("Failed : HTTP error code : "
+                            + conn.getResponseCode());
+                }
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream())));
+
+                String output;
+                String access_token="";
+                System.out.println("Output from Server .... \n");
+                while ((output = br.readLine()) != null) {
+                	System.out.println("Buffer: "+output);
+                    JSONObject token= new JSONObject(output);
+                    access_token=token.getString("access_token");
+                    System.out.println("access"+access_token);
+                    
+                }
+                
+                URL url1= new URL (SCEConstants.OAUTH_VALIDATE_TOKEN_URL+ access_token);
+                System.out.println("url1"+url1);
+
+                HttpsURLConnection conn2 = (HttpsURLConnection) url1.openConnection();
+                
+				conn2.setSSLSocketFactory(sslContext.getSocketFactory());
+                conn2.setRequestMethod("POST");
+               // conn2.setRequestProperty("Content-Type", "application/x-www-form-urlencoded:");
+                conn2.setRequestProperty("Authorization",SCEConstants.OAUTH_VALIDATE_TOKEN_AUTHORIZATION);
+                System.out.println("Author: "+SCEConstants.OAUTH_VALIDATE_TOKEN_AUTHORIZATION);
+                if (conn2.getResponseCode() != 200) {
+                    throw new RuntimeException("Failed : HTTP error code : "
+                            + conn.getResponseCode());
+                }
+
+                BufferedReader br2 = new BufferedReader(new InputStreamReader(
+                        (conn2.getInputStream())));
+
+                String output2="";
+                System.out.println("Output from conn2 .... \n");
+                JSONObject token2= new JSONObject();
+                while ((output2 = br2.readLine()) != null) {
+                	System.out.println("Buffer"+output2);
+                     token2= new JSONObject(output2);
+                     JSONObject details= token2.getJSONObject("access_token");
+                     username=details.getString("NTID");
+                     userDomain=details.getString("domain");
+                                       
+                }
+                String q1 = " select u.emplid as emplId from users u where upper(u.ntid) = upper(:username) ";
+				Query q = session.createSQLQuery(q1);
+				List list = q.list();
+
+				// System.out.println("size " + list.size());
+
+				res = (list.size() > 0) ? (String) list.get(0) : null;
+                userEmplid=res;
+                System.out.println(username +"  "+userDomain+"  "+userEmplid); 
+                conn.disconnect();
+                conn2.disconnect();
+
+                
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+            }
+			return username+","+userDomain+","+userEmplid;
+			}
+		
 }
+
+	
+

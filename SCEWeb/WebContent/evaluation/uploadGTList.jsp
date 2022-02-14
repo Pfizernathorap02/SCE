@@ -26,7 +26,8 @@
         <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/evaluation/resources/_css/ie-6.0.css" />
         <![endif]-->
         <script language="javascript">
-        function download()
+        /* shindo changed function name Edge release */
+        function downloadTemplate()
         {
         document.forms[1].action="downloadGTTemplate";
             document.forms[1].submit();
@@ -148,7 +149,7 @@
             <tr>
                     <td style="border:0px"/>
                     <td style="border:0px">
-                        <s:a href="#" onClick="download()">Download Template</s:a>     <%-- Submit replaced by download --%>
+                        <s:a href="#" onClick="downloadTemplate()">Download Template</s:a>     <%-- Submit replaced by download --%>
                          
                     </td>
                 </tr>

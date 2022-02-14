@@ -84,8 +84,8 @@ String event = request.getAttribute("Event").toString();
             </div>
         
         
-            <h3>Confirmation</h3>
-            <div id="main_content">
+            <h3>Confirmation</h3> <!-- shindo added style for background height edge release -->
+            <div id="main_content" style="height: 900px;">
             
             Thank you for your help and confirming the time slots that you are available on. You will receive an email shortly confirming you submission.
             

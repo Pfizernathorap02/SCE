@@ -153,21 +153,22 @@ color: #ffffff;
 	}
 
 
-
+/* 2021-Q1 shindo updated file name,width and background position for pfizer emblem changes*/
 h1 {
 	margin: 15px 40px;
 	height: 0;
-	width: 88px;		/* image width */
+	width: 100px;		/* image width */
 	padding-top: 57px;	/* image height */
 	overflow: hidden;
 	font-size: 1px;
 	float:left;
-	background: url(../_img/h1_logo.gif) no-repeat;
+	background: url(../_img/h1_logo.jpg) no-repeat;
+	background-position-y: 9px;
 }
 
-* html h1 {
+/* * html h1 {
 	margin: 15px 15px;
-}
+} */
 h2 {
 	margin: 35px 0;
 	padding: 0px;

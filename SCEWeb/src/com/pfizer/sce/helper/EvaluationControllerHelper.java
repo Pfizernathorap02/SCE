@@ -51,10 +51,14 @@ public class EvaluationControllerHelper
         int legalQuestionsCount = Integer.parseInt(request.getParameter("l_value"));
         Integer templateVersionId = new Integer(0);
         TemplateVersion templateVersion = new TemplateVersion();
-        List questions = new ArrayList();
-        List businessRules = new ArrayList();
-        List legalQuestions = new ArrayList();
-        List evaluationFormScores = new ArrayList();
+        @SuppressWarnings("rawtypes")
+		List questions = new ArrayList();
+        @SuppressWarnings("rawtypes")
+		List businessRules = new ArrayList();
+        @SuppressWarnings("rawtypes")
+		List legalQuestions = new ArrayList();
+        @SuppressWarnings("rawtypes")
+		List evaluationFormScores = new ArrayList();
         String publishFlag = request.getParameter("publishFlag");
         
         

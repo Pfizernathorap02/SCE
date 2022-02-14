@@ -23,6 +23,7 @@
 		<property name="typeOfEval" column="type_of_eval" type="string" />
 		<property name="numberOfLearners" column="number_of_learners"
 			type="java.lang.Integer" />
+		<property name="businessUnit" column="BU_ID" type="string" /><!-- added by muzees for PBG and UpJOHN 2019 -->
 
 
 	</class>

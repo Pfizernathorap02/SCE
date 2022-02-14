@@ -16,7 +16,8 @@ public class Users {
 	private Date createDate;
 	private Date lastModifiedDate;
 	private Date lastLogin;
-
+	
+	 
 	/* Added for CSO Enhancement */
 	private String salesPositionTypeCd = "";
 	private String sceVisibility = "";

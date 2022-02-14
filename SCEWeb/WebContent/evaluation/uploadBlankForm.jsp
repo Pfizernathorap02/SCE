@@ -146,7 +146,7 @@ url(<%=request.getContextPath()%>/evaluation/resources/jscalendar-1.0/calendar-w
 					<div>
 						<label>Upload File:<font id="uploadFileMandatory"
 							style="color:#ff0000;">*</font></label>
-						<s:file name="fileUpload" label="User Image" onChange="checkFilled();" id="Uploadfile"  />
+						<s:file name="fileUpload" label="User Image" style="width:300px;" onChange="checkFilled();" id="Uploadfile"  />
 						
 
 					</div>

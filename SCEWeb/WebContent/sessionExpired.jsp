@@ -34,17 +34,17 @@
             <%
             String reqURL = request.getRequestURL().toString().toLowerCase();
             
-            String thisURL="";
+            String thisURL="http://localhost:8080/SCEWeb";
             //if((reqURL.toLowerCase().indexOf("sceint.pfizer.com")) > -1) thisURL="http://upint.pfizer.com/auth.cfm?Appid=2516";
-            if((reqURL.indexOf("sceint.pfizer.com")) > -1) 
-                thisURL="http://sceint.pfizer.com";
+            if((reqURL.indexOf("sce-tst.pfizer.com")) > -1) 
+                thisURL="https://sce-tst.pfizer.com";
             //else if((reqURL.indexOf("wls") > -1))  thisURL="http://upint.pfizer.com/auth.cfm?Appid=3001";
-            else if(reqURL.indexOf("scestg.pfizer.com") > -1)  
-                thisURL="http://scestg.pfizer.com";
+            else if(reqURL.indexOf("sce-stg.pfizer.com") > -1)  
+                thisURL="https://sce-stg.pfizer.com";
             else if(reqURL.indexOf("scedev.pfizer.com") > -1)  
                 thisURL="http://scedev.pfizer.com";
             else if(reqURL.indexOf("sce.pfizer.com") > -1)
-                thisURL="http://sce.pfizer.com";
+                thisURL="https://sce.pfizer.com";
    
             %>
     

@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-	
+
 <%
-    response.setHeader("Cache-Control","no-cache"); //HTTP 1.1
-    response.setHeader("Pragma","no-cache"); //HTTP 1.0
-    response.setDateHeader ("Expires", -1); 
+	response.setHeader("Cache-Control", "no-cache"); //HTTP 1.1
+	response.setHeader("Pragma", "no-cache"); //HTTP 1.0
+	response.setDateHeader("Expires", -1);
 %>
 
 <%@ page language="java" contentType="text/html;charset=UTF-8"%>
@@ -39,33 +39,32 @@
 			<%@include file="navbar.jsp"%>
 			<!-- end #top_head -->
 		</div>
-        <%
-      //User userAdmin = (User)session.getAttribute("user");
-  //  boolean isAdmin = user != null && "SCE_Administrators".equalsIgnoreCase(user.getUserGroup()) || "SCE_OpsManager".equalsIgnoreCase(user.getUserGroup());
-  String userGrp = user.getUserGroup();
-  String opsMgrAccess = "N";
-  if(userGrp == null)
-  {
-  }
-  else if(userGrp.equalsIgnoreCase("SCE_OpsManager")) 
-  {
-    opsMgrAccess = "Y";
-  } 
-
-
-%>
+		<%
+			//User userAdmin = (User)session.getAttribute("user");
+			//  boolean isAdmin = user != null && "SCE_Administrators".equalsIgnoreCase(user.getUserGroup()) || "SCE_OpsManager".equalsIgnoreCase(user.getUserGroup());
+			String userGrp = user.getUserGroup();
+			String opsMgrAccess = "N";
+			if (userGrp == null) {
+			} else if (userGrp.equalsIgnoreCase("SCE_OpsManager")) {
+				opsMgrAccess = "Y";
+			}
+		%>
 
 		<h3>Admin: Main</h3>
 		<div id="main_content">
 
 			<s:form action="gotoSCEReport" tagId="SearchForAttendeeForm">
 				<fieldset>
-    <%if(opsMgrAccess.equalsIgnoreCase("Y")){%>    
-                <div>
+					<%
+						if (opsMgrAccess.equalsIgnoreCase("Y")) {
+					%>
+					<div>
 						<s:url action="gototFieldFacultyMaintenance" var="gotETemp"></s:url>
 						<s:a href="%{gotETemp}">Field Faculty Maintenance</s:a>
 					</div>
-                <%}else{%>
+					<%
+						} else {
+					%>
 					<div>
 						<s:url action="gotoUserAdmin" var="adminUrl"></s:url>
 						<s:a href="%{adminUrl}">User Admin</s:a>
@@ -82,7 +81,7 @@
 						<s:url action="gotoLegalTemplate" var="gotETemp"></s:url>
 						<s:a href="%{gotETemp}">Legal Consent Template Maintenance</s:a>
 					</div>
-					
+
 					<div>
 						<s:url action="gotoEvalTemplateMapping" var="gotETemp"></s:url>
 						<s:a href="%{gotETemp}">LMS Course to Evaluation Template Mapping</s:a>
@@ -114,16 +113,42 @@
 					<div>
 						<s:url action="trainerLearnerMapping" var="gotETemp"></s:url>
 						<s:a href="%{gotETemp}">Learner Trainer Mapping</s:a>
-					</div> 
+					</div>
 					<%-- <div>
 						<s:url action="gotoselectgt">Selection of Guest Trainer for Evaluation </s:url>
 					</div>  --%>
-					<div> 
+					<div>
 						<s:url action="goToWebEx" var="webExUrl">
 						</s:url>
 						<s:a href="%{webExUrl}">Event WebEx Maintenance</s:a>
 					</div>
-					<%} %>
+
+					<!-- ADDED BY MANISH FOR UPDATING APPROVERS -->
+					<%-- <div>
+						<s:url action="goToApprovers" var="gotETemp">
+						</s:url>
+						<s:a href="%{gotETemp}">Approvers</s:a>
+					</div> --%>
+
+					<!--End Code  -->
+					
+					<!-- code added by shaikh07 for Role Mapping for version 3.4 RFC#1136920 -->
+					<div>
+						<s:url action="goToRoleMapping" var="gotETemp">
+						</s:url>
+						<s:a href="%{gotETemp}">Role Mapping</s:a>
+					</div>
+					<!--End Code for Role Mapping for version 3.4 RFC#1136920 -->
+					<!-- code added by thorap02 for BU Mapping  -->
+					<div>
+						<s:url action="goToBUMapping" var="gotETemp">
+						</s:url>
+						<s:a href="%{gotETemp}">BU Mapping</s:a>
+					</div>
+					<!--End Code for BU Mapping  -->
+					<%
+						}
+					%>
 				</fieldset>
 			</s:form>
 

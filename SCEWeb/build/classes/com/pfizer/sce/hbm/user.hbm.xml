@@ -24,7 +24,8 @@
 		<property name="userGroup" column="USERGROUP" type="string" />
 		<property name="createDate" column="CREATE_DATE" type="date" />
 		<property name="lastModifiedDate" column="LAST_MODIFIED_DATE" type="date" />		
-		<property name="expirationDate" column="EXPIRATION_DATE" type="string"  />	
+		<property name="expirationDate" column="EXPIRATION_DATE" type="string"  />
+		<property name="businessUnit" column="BU_ID" type="string"  />	<!-- added by muzees for PBG and UpJOHN -->
 				
 	</class>
 </hibernate-mapping>

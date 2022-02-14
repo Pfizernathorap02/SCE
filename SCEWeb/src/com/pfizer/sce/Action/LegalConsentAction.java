@@ -151,9 +151,9 @@ public void setPageUrl(String pageUrl) {
 				ntDomain = user.getNtdomain();
 				sceRole = user.getUserGroup();
 			} else {
-				acceptedBy = "bakhsr";
+				/*acceptedBy = "bakhsr";
 				ntDomain = "amer";
-				sceRole = "SCE_Administrators";
+				sceRole = "SCE_Administrators";*/
 			}
 
 			acceptedId = sceManager.fetchMaxAcceptedId();

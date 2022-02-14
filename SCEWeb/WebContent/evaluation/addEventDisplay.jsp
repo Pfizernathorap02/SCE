@@ -251,6 +251,14 @@ url(<%=request.getContextPath()%>/evaluation/resources/jscalendar-1.0/calendar-w
 				<table cellpadding="0" cellspacing="0"
 					style="border: 0; colour: 'white';">
 					<tr>
+						<td width="5%" valign="top" style="border: 0">Business Unit</td>
+						<td style="border: 0">
+							 <s:label
+								name="businessUnit" id="businessUnit"></s:label>
+
+						</td>
+					</tr>
+					<tr>
 						<td width="15%" valign="top" style="border: 0">Event Id</td>
 				<%-- 		<%
 							Integer id = (Integer) (events.getEventId());

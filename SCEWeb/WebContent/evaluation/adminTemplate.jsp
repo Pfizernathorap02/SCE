@@ -175,9 +175,9 @@
 					%>
 
 					<tr>
-						<td><%=SCEUtils.ifNull(
+						<td style="word-break:break-word;"><%=SCEUtils.ifNull(
 									objTemplateVersion.getTemplateName(),
-									"&nbsp;")%></td>
+									"&nbsp;")%></td> <!-- shindo added style Edge-->
 
 
 

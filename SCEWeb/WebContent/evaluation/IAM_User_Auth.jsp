@@ -1,4 +1,6 @@
-
+<%-- 
+  This JSP page has been updated by MUZEES to remove NTdomain mandatory condition for login
+  --%>
 <%@page import="java.math.BigDecimal"%>
 <%@ page import="com.pfizer.sce.db.SCEManager"%>
 <%@ page import="com.pfizer.sce.beans.User"%>
@@ -11,6 +13,9 @@
 <%@page import="java.net.*"%>
 <%@page import="java.io.*"%>
 <%@page import="java.sql.*"%>
+
+<!-- shindo invite -->
+
 
 
 <%
@@ -31,16 +36,21 @@
 	 * 
 	 * The code also does the session handling.
 	 */
+	 
 
 	public String getAuthUserId(String domain, String ntid) {
 
 		String result = "";
 
 		try {
-			if (domain.length() > 0 && ntid.length() > 0) {
-				domain.toUpperCase();
+			if (ntid.length() > 0) {
+				//domain.toUpperCase();
 				ntid.toUpperCase();
-				result = domain + "\\" + ntid;
+				if (domain.length() > 0) {
+					domain.toUpperCase();
+					result = domain + "\\" + ntid;
+				} else
+					result = ntid;
 			} else {
 				result = "";
 			}
@@ -58,102 +68,139 @@
 	// The session variable 'UserId" is only set in PROD 
 	try {
 		String location = request.getRequestURL().toString()
-				.toLowerCase();
+		.toLowerCase();
 
 		//boolean isLocal = location.indexOf("localhost") > -1;
 		boolean isLocal = (location.indexOf("localhost") > -1
-				|| location.indexOf("ASPX") > -1 || location
-				.indexOf("aspx") > -1);
-		//isLocal = true;
+		|| location.indexOf("ASPX") > -1 || location
+		.indexOf("aspx") > -1);
+		isLocal=false; //shindo oauth
 		if (isLocal) {
-			LoggerHelper.logSystemDebug("Inside local");
+	LoggerHelper.logSystemDebug("Inside local");
+	
+	//handle session
+	
+	/* if (session==null){
+		LoggerHelper.logSystemDebug("Inside session null");
+		response.sendRedirect(request.getContextPath()
+				+ "/sessionExpired.jsp");
+	} */
 
-			if (session.getAttribute("user") == null) {
-				User user = new User();
-				user.setFirstName("Manish");
-				user.setLastName("Kumar");
-				user.setNtid("KUMAM102");
-				//user.setNtid("SINGHM24");
-				user.setNtdomain("apac");
-				user.setEmail("manish.kumar2@pfizer.com");
-				user.setStatus("ACTIVE");
-				//user.setUserGroup("SCE_OpsManager");
-				user.setUserGroup("SCE_Administrators");
-				//System.out.println("usegroup "+user.getUserGroup());
-				//user.setUserGroup("SCE_GuestTrainer_NonMGR");
-				
-				System.out.println("User Ntid"+user.getNtid());
-				System.out.println("user Group"+user.getUserGroup());
-				System.out.println("Working ");
-				System.out.println("Working ");
-				
-				//user.setUserGroup("SCE_TrainingTeam");
-				// user.setEmplId("-2");
-				//user.setEmplId("BAKHSR");
-				user.setEmplId("68221000");
-				user.setId(new Integer(1));
-				session.setAttribute("user", user);
-				//System.out.println("The ntid is "+user.getNtid());
-				//System.out.println("The domain is "+user.getNtdomain());
-				System.out.println("Working ");
-			}
+	if (session.getAttribute("user") == null) {
+		User user = new User();
+		/* user.setFirstName("Shaik");
+		user.setLastName("Muzeeb");
+		user.setNtid("FREEMA02"); */
+		//user.setNtid("SINGHM24");
+		 // user.setFirstName("Priya");
+		//user.setLastName("Thorat");
+		//user.setNtid("THORAP02");
+		//user.setNtdomain("AMER");
+		//user.setEmail("PriyaSandeep.Thorat@pfizer.com"); 
+		//user.setStatus("ACTIVE"); 
+		//user.setBusinessUnit("PBG");
+		//user.setBusinessUnit("Non-USField");
+		//user.setBusinessUnit("PBG");
+		//System.out.println("usegroup "+user.getUserGroup());
+		//user.setUserGroup("SCE_GuestTrainer_NonMGR");
+		 //user.setUserGroup("SCE_Administrators"); 
+		//user.setUserGroup("SCE_TrainingTeam");
+		//user.setUserGroup("SCE_GuestTrainer_MGR");
+		//user.setUserGroup("SCE_OpsManager");
+		/* user.setBusinessUnit("ALL"); */
+		//user.setUserGroup("SCE_TrainingTeam");
+		// user.setEmplId("-2");
+		//user.setEmplId("BAKHSR");
+		/* user.setEmplId("2070402"); */
+		user.setId(new Integer(1));
+		session.setAttribute("user", user);
+		System.out.println("Working ");
+	}
 		} else {
-			SCEControlImpl sceCtl = new SCEControlImpl();
+	SCEControlImpl sceCtl = new SCEControlImpl();
 
-			//(SCEControl)pageContext.getAttribute("SCEControl");
+	//(SCEControl)pageContext.getAttribute("SCEControl");
 
-			User user = null;
-			String sceVisible = "";
+	User user = null;
+	String sceVisible = "";
 
-			user = (User) session.getAttribute("user");
+	user = (User) session.getAttribute("user");
 
-			String userid = (String) session.getAttribute("UserID");
-			String emplid;
-			String ntid;
-			String domain;
+	String userid = (String) session.getAttribute("UserID");
+	System.out.println("userid"+userid);
+	/*userid=(String) session.getAttribute("User_Id");
+	System.out.println("userid1"+userid);
+	userid=(String) session.getAttribute("User_ID");
+	System.out.println("userid2"+userid);*/
+	String emplid="";
+	String ntid="";
+	String domain="";
 
-			if (userid == null) {
-				Enumeration e1 = request.getHeaderNames();
-				if (!e1.hasMoreElements()) {
-					//gadalp response.sendRedirect("..\\sessionExpired.jsp");
-					response.sendRedirect(request.getContextPath()
-							+ "/sessionExpired.jsp");
-				} else {
-					emplid = request
-							.getHeader("IAMPFIZERUSERWORKFORCEID");
-					ntid = request
-							.getHeader("IAMPFIZERUSERPFIZERNTLOGONNAME");
-					domain = request
-							.getHeader("IAMPFIZERUSERPFIZERNTDOMAINNAME");
+	if (userid == null) {
+		Enumeration e1 = request.getHeaderNames();
+		if (!e1.hasMoreElements()) {
+			//gadalp response.sendRedirect("..\\sessionExpired.jsp");
+			response.sendRedirect(request.getContextPath()
+					+ "/sessionExpired.jsp");
+		} else {
+			/* emplid = request
+					.getHeader("IAMPFIZERUSERWORKFORCEID");
+			ntid = request
+					.getHeader("IAMPFIZERUSERPFIZERNTLOGONNAME");
+			domain = request
+					.getHeader("IAMPFIZERUSERPFIZERNTDOMAINNAME"); oauth*/
+					
+					
+					System.out.println("Inside IAM... ");
+					/* SCEControlImpl sceControl = new SCEControlImpl();
 
-					System.out.println("The ntid is " + ntid);
-					LoggerHelper.logSystemDebug("The ntid is "+ntid);
-					System.out.println("The domain is " + domain);
-					LoggerHelper.logSystemDebug("The domain is " + domain);
-					System.out.println("The empid is " + emplid);
-					LoggerHelper.logSystemDebug("The empid is " + emplid);
+					String userDetails = sceControl
+							.getAuthenticatedUserID(request,response);
+					System.out.println("Oauth details  : "+userDetails);
+					
+					if (!userDetails.startsWith("null") && userDetails.length()>0){
+						String[] userDetailsArray = userDetails.split(",");
+						ntid = userDetailsArray[0];
+						domain = userDetailsArray[1];
+						emplid = userDetailsArray[2];
+					} else{
+						//shindo added session expired 
+						response.sendRedirect(request.getContextPath()
+									+ "/sessionExpired.jsp"); 
+						response.sendRedirect(UNAUTHORIZED_URL);
+					}   */
 
 					// Hardcoding for testing purpose
 
-					if (emplid == null || ntid == null
+					/* if (emplid == null || ntid == null
 							|| domain == null) {
 
 						emplid = "148324";
 						ntid = "gadalp";
 						domain = "AMER";
-					}
+					} */
 
 					userid = getAuthUserId(domain, ntid);
+					System.out.println("userid is :"+userid);
 
-					System.out.println("The userid is " + userid);
-					LoggerHelper.logSystemDebug("The userid is " + userid);
-					
 					if (userid.trim().length() > 0) {
-
-						if (domain.length() > 0 && ntid.length() > 0) {
+						System.out.println("The ntid is " + ntid);
+						LoggerHelper.logSystemDebug("The ntid is "
+								+ ntid);
+						
+						System.out.println("The domain is " + domain);
+						LoggerHelper.logSystemDebug("The domain is "
+								+ domain);
+						System.out.println("The empid is " + emplid);
+						LoggerHelper.logSystemDebug("The empid is "
+								+ emplid);
+						System.out.println("The userid is " + userid);
+						LoggerHelper.logSystemDebug("The userid is "
+								+ userid);
+						if (ntid.length() > 0) {
 							System.out.println("Came inside IF");
-							user = sceCtl.getUserByNTIdAndDomain(ntid,
-									domain);
+							/* user = sceCtl.getUserByNTIdAndDomain(ntid,domain); 2020 Q2:domain required logic condition removed*/
+							user = sceCtl.getUserByNTIdAndDomain(ntid);
 							/* Added for CSO requirements */
 							if (user != null) {
 								String sType = "";
@@ -184,10 +231,11 @@
 						} else {
 							user = null;
 						}
-						
+
 						System.out.println("The user is " + user);
-						LoggerHelper.logSystemDebug("The user is " + user);
-						
+						LoggerHelper.logSystemDebug("The user is "
+								+ user);
+
 						if (user == null || !user.isActive()) {
 
 							/* ------------------------DEXTER's LAB EXPERIMENT PART ONE STARTS ----------------------      */
@@ -213,6 +261,10 @@
 							/* ------------------------DEXTER's LAB EXPERIMENT PART ONE ENDS----------------------      */
 
 							//out.print("no user found from DB");
+							//shindo oauth redirected after session expired
+							 response.sendRedirect(request.getContextPath()
+								+ "/sessionExpired.jsp"); 
+					
 							response.sendRedirect(UNAUTHORIZED_URL);
 						} else {
 							// out.print(" user found from DB. set session with userid " + userid);
@@ -238,6 +290,8 @@
 						}
 					} else {
 						// response.sendRedirect("..\\sessionExpired.jsp");
+						String str=request.getRequestURL().toString();
+						System.out.println("url is "+ str);
 						response.sendRedirect(request.getContextPath()
 								+ "/sessionExpired.jsp");
 					}
@@ -255,4 +309,3 @@
 		System.out.println("IAM exception: ");
 	}
 %>
-

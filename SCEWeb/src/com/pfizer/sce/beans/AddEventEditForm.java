@@ -15,6 +15,7 @@ public class AddEventEditForm {
 	private Integer numberOfEval;
 	private String typeOfEval;
 	private Integer numberOfLearners;
+	private String businessUnit;
 
 	private HashMap<String, String> eventstatuses;
 
@@ -112,6 +113,14 @@ public class AddEventEditForm {
 
 	public void setEventstatuses(HashMap<String, String> eventstatuses) {
 		this.eventstatuses = eventstatuses;
+	}
+
+	public String getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(String businessUnit) {
+		this.businessUnit = businessUnit;
 	}
 
 }

@@ -1,5 +1,4 @@
-<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html><html>
 <!--
 
 Generated from ../reference.tex by tex2page, v 2004-09-11
@@ -502,7 +501,7 @@ calendar.</p>
 </p>
 <a name="node_sec_3.1"></a>
 <h2><a href="#node_toc_node_sec_3.1">3.1&nbsp;&nbsp;Popup calendars</a></h2>
-<p>These samples can be found in the file “<tt>simple-1.html</tt>” from the
+<p>These samples can be found in the file â€œ<tt>simple-1.html</tt>â€� from the
 calendar package.</p>
 <p>
 </p>
@@ -529,12 +528,12 @@ button that will open the calendar when clicked.</p>
 </pre><p></p>
 <p>
 Note that this code does more actually; the only <em>required</em> fields are
-those marked with “//*” -- that is, the ID of the input field and the ID of
+those marked with â€œ//*â€� -- that is, the ID of the input field and the ID of
 the button need to be passed to <tt>Calendar.setup</tt> in order for the
 calendar to be properly assigned to this input field.  As one can easily
 guess from the argument names, the other arguments configure a certain date
 format, instruct the calendar to also include a time selector and display
-every year in the drop-down boxes (the “step” parameter) -- instead of showing
+every year in the drop-down boxes (the â€œstepâ€� parameter) -- instead of showing
 every other year as the default calendar does.</p>
 <p>
 </p>
@@ -577,8 +576,8 @@ allow the end user to write a date manually.  This can easily be achieved
 with an input field by setting its <tt>readonly</tt> attribute, which is
 defined by the HTML4 standard; however, here's an even nicer approach: our
 calendar widget allows you to use a hidden field as the way to pass data to
-server, and a “display area” to show the end user the selected date.  The
-“display area” can be any HTML element, such as a DIV or a SPAN or
+server, and a â€œdisplay areaâ€� to show the end user the selected date.  The
+â€œdisplay areaâ€� can be any HTML element, such as a DIV or a SPAN or
 whatever -- we will use a SPAN in our sample.</p>
 <p>
 </p>
@@ -602,11 +601,11 @@ whatever -- we will use a SPAN in our sample.</p>
 </pre><p></p>
 <p>
 The above code will configure a calendar attached to the hidden field and to
-the SPAN having the id=“show_d”.  When the SPAN element is clicked, the
+the SPAN having the id=â€œshow_dâ€�.  When the SPAN element is clicked, the
 calendar opens and allows the end user to chose a date.  When the date is
 chosen, the input field will be updated with the value in the format
-“<tt>%Y/%d/%m</tt>”, and the SPAN element will display the date in a
-friendlier format (defined by “<tt>daFormat</tt>”).</p>
+â€œ<tt>%Y/%d/%m</tt>â€�, and the SPAN element will display the date in a
+friendlier format (defined by â€œ<tt>daFormat</tt>â€�).</p>
 <p>
 Beware that using this approach will make your page unfunctional in browsers
 that do not support JavaScript or our calendar.</p>
@@ -666,9 +665,9 @@ field such that it keeps a one week difference between the two.  Enjoy! :-)</p>
 </p>
 <a name="node_sec_3.2"></a>
 <h2><a href="#node_toc_node_sec_3.2">3.2&nbsp;&nbsp;Flat calendars</a></h2>
-<p>This sample can be found in “<tt>simple-2.html</tt>”.  It will configure a
+<p>This sample can be found in â€œ<tt>simple-2.html</tt>â€�.  It will configure a
 flat calendar that is always displayed in the page, in the DIV having the
-id=“calendar-container”.  When a date is clicked our function hander gets
+id=â€œcalendar-containerâ€�.  When a date is clicked our function hander gets
 called (<tt>dateChanged</tt>) and it will compute an URL to jump to based on
 the selected date, then use <tt>window.location</tt> to visit the new link.</p>
 <p>
@@ -770,7 +769,7 @@ id=&quot;calendar-container&quot;&gt;&lt;/div&gt;
 </pre><p></p>
 <p>
 So the above code creates a normal flat calendar, like in the previous
-sample.  We hook into it with the function “<tt>ourDateStatusFunc</tt>”,
+sample.  We hook into it with the function â€œ<tt>ourDateStatusFunc</tt>â€�,
 which receives a date object as the first argument, and also the year,
 month, date as the next 3 arguments (normally, you can extract year, month,
 date from the first parameter too, but we pass them separately for
@@ -780,8 +779,8 @@ function).</p>
 So, this function receives a date.  It can return <tt>false</tt> if you want
 no special action to be taken on that date, <tt>true</tt> if that date
 should be disabled (unselectable), or a string if you want to assign a
-special CSS class to that date.  We return “special” for the dates that we
-want to highlight -- and note that we defined a “special” look for them in
+special CSS class to that date.  We return â€œspecialâ€� for the dates that we
+want to highlight -- and note that we defined a â€œspecialâ€� look for them in
 the CSS section.</p>
 <p>
 I used a simple approach here to define what dates are special.  There's a
@@ -796,7 +795,7 @@ ideas. :-)</p>
 <a name="node_sec_3.4"></a>
 <h2><a href="#node_toc_node_sec_3.4">3.4&nbsp;&nbsp;Select multiple dates</a></h2>
 <p>Starting version 1.0, the calendar is able to handle multiple dates
-selection.  You just need to pass the “<tt>multiple</tt>” parameter to
+selection.  You just need to pass the â€œ<tt>multiple</tt>â€� parameter to
 <tt>Calendar.setup</tt> and add some special code that interprets the
 selection once the calendar is closed.</p>
 <p>
@@ -850,10 +849,10 @@ selection once the calendar is closed.</p>
 </pre><p></p>
 <p>
 The above code creates a popup calendar and passes to it an array of dates,
-which is initially empty, in the “multiple” argument.  When the calendar is
-closed it will call our “<tt>closed</tt>” function handler; in this handler
+which is initially empty, in the â€œmultipleâ€� argument.  When the calendar is
+closed it will call our â€œ<tt>closed</tt>â€� function handler; in this handler
 we determine what dates were actually selected, inspecting the
-“<tt>cal.multiple</tt>” property, we display them in a DIV element right
+â€œ<tt>cal.multiple</tt>â€� property, we display them in a DIV element right
 next to the &lt;a&gt; element that opens the calendar, and we reinitialize the
 global array of selected dates (which will be used if the end user opens the
 calendar again).  I guess the code speaks for itself, right? :-)</p>

@@ -76,12 +76,34 @@ public class SCEUtils
     {
         HashMap userGroups = new HashMap();
         userGroups.put("SCE_Administrators", "Admin");
-        userGroups.put("SCE_GuestTrainer_NonMGR", "Guest Trainer");  
+        userGroups.put("SCE_GuestTrainer_NonMGR", "Guest Trainer");
         userGroups.put("SCE_TrainingTeam", "Training Team");   
+        /*userGroups.put("SCE_OpsManager", "OPS Manager");2020 Q4:commented by muzees to remove ops manager option from add user functionality*/
+        return userGroups;
+    }
+    //Start of Muzees for PBG and Upjohn changes 2019
+    public static HashMap getUserGroupsMapwithGTMGR()//used in update user page and user admin page
+    {
+        HashMap userGroups = new HashMap();
+        userGroups.put("SCE_Administrators", "Admin");
+        userGroups.put("SCE_TrainingTeam", "Training Team");
+        userGroups.put("SCE_GuestTrainer_NonMGR", "Guest Trainer Non-MGR");
+        userGroups.put("SCE_GuestTrainer_MGR", "Guest Trainer MGR");
         userGroups.put("SCE_OpsManager", "OPS Manager");
         return userGroups;
     }
+    public static LinkedHashMap getFilterUserGroups()
+    {
+        LinkedHashMap filterUserGroups = new LinkedHashMap();   
+        
+        filterUserGroups.put("SCE_Administrators", "Admin");
+        filterUserGroups.put("SCE_TrainingTeam", "Training Team");
+        filterUserGroups.put("SCE_GuestTrainer_NonMGR", "Guest Trainer Non-MGR"); 
+        filterUserGroups.put("SCE_GuestTrainer_MGR", "Guest Trainer MGR");
     
+        return filterUserGroups;
+    }
+    //end of muzees
     public static HashMap getStatuses()
     {
         HashMap statuses = new HashMap();
@@ -102,6 +124,17 @@ public class SCEUtils
     }
     //Adbhut
     
+    //added by manish to hide form statuses
+    public static LinkedHashMap getFormStatuses()
+    {
+    	LinkedHashMap<String, String> filterFormStatuses = new LinkedHashMap<String, String>();
+    	
+      filterFormStatuses.put("Visible", "Visible");
+        filterFormStatuses.put("Hidden", "Hidden"); 
+    
+        return filterFormStatuses;
+    }
+    //manish
 public static HashMap getEventStatuses(EventsCreated events) {
 		
 		HashMap eventStatuses = new HashMap();

@@ -211,6 +211,7 @@ public class EventManagement extends ActionSupport implements
 				events.setNumberOfEval(addEventForm.getNumberOfEval());
 				events.setTypeOfEval(addEventForm.getTypeOfEval());
 				events.setNumberOfLearners(addEventForm.getNumberOfLearners());
+				events.setBusinessUnit(addEventForm.getBusinessUnit());
 
 				EventsCreated eventsRetrieved = sceManager.getEvent(events);
 				if (eventsRetrieved != null) {
@@ -274,6 +275,7 @@ public class EventManagement extends ActionSupport implements
 				form.setTypeOfEval(events1.getTypeOfEval());
 				form.setEventstatuses(eventstatuses);
 				form.setNumberOfLearners(events1.getNumberOfLearners());
+				form.setBusinessUnit(events1.getBusinessUnit());
 
 				return new String("success");
 

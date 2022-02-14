@@ -115,7 +115,19 @@
     <% 
     }
     %>
-    
+    //Start:2020 Q3:added by muzees to avoid duplicate evaluation
+    function disableSubmit(){
+    	
+    	document.getElementById("submiteval").disabled = true;
+    	if(validateSubmit()){
+    		return true;
+    	}
+    	else {
+    		
+    		document.getElementById("submiteval").disabled = false;
+    		return false;
+    	}
+    }//end of MUZEES
     function validateSubmit() {
     
         // Precall Rating
@@ -1207,8 +1219,12 @@
                     <s:hidden name="productName" />
                                  
                     <input type="hidden" name="template_version_id" id="template_version_id" value="<%=objSCE.getTemplateVersionId()%>">
-                    <%if (createMode) {%>                    
-                    <img src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif" style="width:55px; height:19px" onClick="return validateSubmit()" alt="Submit">                                        
+                    <%if (createMode) {%>  
+                    <%-- <img
+							src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif"
+							style="width: 55px; height: 19px"
+							onClick="return validateSubmit()" alt="Submit"> 2020 Q3:commented by muzees to avoid duplicate evaluation--%> 
+					<input type="image" id="submiteval" alt="Submit" onClick="return disableSubmit()" src="<%=request.getContextPath()%>/evaluation/resources/_img/button_submit.gif" style="width: 55px; height: 19px"> <!-- 2020 Q3:added by muzees to avoid duplicate evaluation- -->                                                         
         			<%if ("evaluate".equalsIgnoreCase(from)) {%>                    
                     <img src="<%=request.getContextPath()%>/evaluation/resources/_img/button_cancel.gif" style="width:55px; height:19px" onClick="return cancel()" alt="Cancel">
                     <%} else if ("search".equalsIgnoreCase(from)) {%>

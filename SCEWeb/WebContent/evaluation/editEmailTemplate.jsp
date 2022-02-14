@@ -129,8 +129,8 @@ function preview() {
 
 <html>
     <head>
-    <script language="JavaScript" type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
-<script language="JavaScript" type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.5.2/jquery-ui.min.js"></script>
+    <script language="JavaScript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js"></script>
+<script language="JavaScript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.5.2/jquery-ui.min.js"></script>
 <script language="JavaScript" type="text/javascript">
 $(document).ready( function()
 {
@@ -191,7 +191,7 @@ $(document).ready( function()
         }
     });
 });
-
+/* shindo modified this.form.textmessage for Edge */
 $.fn.insertAtCaret = function (myValue) {
 	return this.each(function(){
 			
@@ -205,14 +205,14 @@ $.fn.insertAtCaret = function (myValue) {
 			else if (this.form.email_bodyselectionStart || this.form.txtmessage.selectionStart == '0') {
 					var startPos = this.form.txtmessage.selectionStart;
 					var endPos = this.form.txtmessage.selectionEnd;
-					var scrollTop = this.txtmessage.scrollTop;
-					txtmessage.value = this.value.substring(0, startPos)+ myValue+ this.txtmessage.value.substring(endPos,txtmessage.value.length);
+					var scrollTop = this.form.txtmessage.scrollTop;
+					this.form.txtmessage.value = this.form.txtmessage.value.substring(0, startPos)+ myValue+ this.form.txtmessage.value.substring(endPos,txtmessage.value.length);
 					this.form.txtmessage.focus();
 					this.form.txtmessage.selectionStart = startPos + myValue.length;
 					this.form.txtmessage.selectionEnd = startPos + myValue.length;
 					this.form.txtmessage.scrollTop = scrollTop;
 			} else {
-					this.txtmessage.value += myValue;
+					this.form.txtmessage.value += myValue;
 					this.form.txtmessage.focus();
 			}
 	});
@@ -323,7 +323,8 @@ margin-right:5px;
                     <label>Email Body:<font color="red">* </font></label>
                       <textarea class="txtDropTarget" id="txtmessage" dir="ltr" name="txtmessage" rows="20" style="width:625px; size:800px"><%=SCEUtils.replace(SCEUtils.ifNull(emailtemplates.getEmailBody(),""),"\"","&quot;")%></textarea>
                     </div>
-                 <div id="sidebar" class="add_buttons">
+                    <!-- shindo added style -->
+                 <div id="sidebar" class="add_buttons" style="float: left;" >
                     
                    <img src="resources/_img/button_cancel.gif" width="55" height="19" alt="Cancel" align="right" onclick="cancelEdit(<%=emailtemplates.getEvaluationTemplateId()%>,'<%=emailtemplates.getScoringSystemIdentifier()%>')"/>
                   <img src="resources/_img/button_save.gif" width="38" height="19" name="Save" align="right" alt="Save" onclick="return validateInput(<%=emailtemplates.getEvaluationTemplateId()%>,'<%=emailtemplates.getScoringSystemIdentifier()%>');">

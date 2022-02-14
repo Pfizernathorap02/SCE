@@ -157,7 +157,7 @@ document.getElementById('toCC').value=toCC;
 document.getElementById('productSel').value=productSel;
 
 document.getElementById("sendEmailForm").submit();
-window.close();
+/* window.close(); shindo same window used for success message Edge release*/
 /*Jan release end simi- Changes done to resolve the content issue*/
 
 }
@@ -318,8 +318,9 @@ Training Logistics Team
 </s:form>
 
 <!--  Jan release- Changes done to resolve the content issue-->
-
-    <form action="sendEmail.jsp" method="post" id="sendEmailForm" target="T_SendEmail">   
+ <!-- shindo changed target T_SendEmail to self Edge browser -->
+ <!-- action="sendEmail.jsp" method="post" id="sendEmailForm" target="T_SendEmail" -->
+    <form  action="sendEmail.jsp" method="post" id="sendEmailForm" target="_self">   
     <input type="hidden" name="contentBody" id="contentBody" value=""/>
     <input type="hidden" name="toEmail" id="toEmail" value=""/>
     <input type="hidden" id="eventSel" name="eventSel" value=""/>

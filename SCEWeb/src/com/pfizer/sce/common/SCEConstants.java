@@ -1,6 +1,8 @@
 package com.pfizer.sce.common; 
 
+
 import java.util.HashMap;
+import java.util.Properties;
 
 public class SCEConstants 
 { 
@@ -44,4 +46,68 @@ public class SCEConstants
     public static final String DONOTSENDTOLMS = "N";
     public static final String SUBMITTED="SUBMITTED";
     //End Neha's code
+    
+    /*Added by shindo for Oauth*/ 
+    public static String OAUTH_REDIRECT_URI=null;
+    public static String OAUTH_CODE_URL = null;
+    public static String OAUTH_TOKEN_URL= null;
+    public static String OAUTH_VALIDATE_TOKEN_URL = null;
+    public static String OAUTH_GET_TOKEN_AUTHORIZATION = null;
+    public static String OAUTH_VALIDATE_TOKEN_AUTHORIZATION=null;
+    public static String INVITE_FLAG="N";
+    public static String TR_FLAG="N";
+     
+    public final static void loadOauthValues (Properties prop) throws Exception
+    {
+    	OAUTH_REDIRECT_URI= prop.getProperty("OauthRedirectURI");
+    	if (OAUTH_REDIRECT_URI==null){
+    		throw new Exception ("OauthRedirectURI is required");
+    	}
+    	
+    	OAUTH_GET_TOKEN_AUTHORIZATION= prop.getProperty("GetTokenAuthorization");
+    	if (OAUTH_GET_TOKEN_AUTHORIZATION==null){
+    		throw new Exception ("GetTokenAuthorization is required");
+    	}
+    	
+    	OAUTH_VALIDATE_TOKEN_AUTHORIZATION= prop.getProperty("ValidateTokenAuthorization");
+    	if (OAUTH_VALIDATE_TOKEN_AUTHORIZATION==null){
+    		throw new Exception ("ValidateTokenAuthorization is required");
+    	}
+    	
+    	OAUTH_CODE_URL= prop.getProperty("OauthCodeURL");
+    	if (OAUTH_CODE_URL==null){
+    		throw new Exception ("OauthCodeURL is required");
+    	}
+    	
+    	OAUTH_TOKEN_URL= prop.getProperty("OauthGetTokenURL");
+    	if (OAUTH_TOKEN_URL==null){
+    		throw new Exception ("OauthGetTokenURL is required");
+    	}
+    	
+    	OAUTH_VALIDATE_TOKEN_URL= prop.getProperty("OauthValidateTokenURL");
+    	if (OAUTH_VALIDATE_TOKEN_URL==null){
+    		throw new Exception ("OauthValidateTokenURL is required");
+    	}
+    	
+    	/*HOST_URL= prop.getProperty("hostURL");
+    	if (OAUTH_VALIDATE_TOKEN_URL==null){
+    		throw new Exception ("HOST_URL is required");
+    	}
+    	
+    	PORT_NUMBER= Integer.valueOf(prop.getProperty("portNumber"));
+    	if (PORT_NUMBER==null){
+    		throw new Exception ("PORT_NUMBER is required");
+    	}*/
+    	System.out.println("OAUTH properties loaded....");
+    	
+    	System.out.println("OAUTH_REDIRECT_URI  =  "+ OAUTH_REDIRECT_URI);
+    	System.out.println("OAUTH_GET_TOKEN_AUTHORIZATION  =  "+ OAUTH_GET_TOKEN_AUTHORIZATION);
+    	System.out.println("OAUTH_VALIDATE_TOKEN_AUTHORIZATION  =  "+ OAUTH_VALIDATE_TOKEN_AUTHORIZATION );
+    	System.out.println("OAUTH_CODE_URL  =  "+ OAUTH_CODE_URL);
+    	System.out.println("OAUTH_TOKEN_URL  =  "+ OAUTH_TOKEN_URL);
+    	System.out.println("OAUTH_VALIDATE_TOKEN_URL  =  "+ OAUTH_VALIDATE_TOKEN_URL);
+    	/*System.out.println("HOST_URL   =  "+ HOST_URL);*/
+
+    }
+    //end of shindo's code
 } 

@@ -8,6 +8,7 @@ public class Role
     private String isSave;
     private String isSubmit;
     private String reportType;
+    private String roleId;
         
     public String getRoleCd() {
         return roleCd;
@@ -47,5 +48,13 @@ public class Role
     
     public void setReportType(String reportType) {
         this.reportType = reportType;
-    }       
+    }
+
+	public String getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(String roleId) {
+		this.roleId = roleId;
+	}       
 } 

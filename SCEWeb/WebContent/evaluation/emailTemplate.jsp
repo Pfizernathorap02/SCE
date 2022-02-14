@@ -296,7 +296,7 @@ function deleteEmailTemplate(emailTemplateId)
                                     // System.out.println("publish flag "+publishFlag);
                                     %>
                                 <tr>                                   
-                                    <td><%=emailtemplates[i].getEvaluationTemplateName()%></td>
+                                    <td style="word-break:break-word;"><%=emailtemplates[i].getEvaluationTemplateName()%></td>
                                     <td><%=emailtemplates[i].getOverallScore()%></td>
                                     <td><%=emailtemplates[i].getEmailTemplateVersion()%></td>
                                     <%

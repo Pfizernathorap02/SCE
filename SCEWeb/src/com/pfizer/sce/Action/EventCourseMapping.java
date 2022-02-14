@@ -9,6 +9,7 @@ import com.opensymphony.xwork2.ActionSupport;
 import com.pfizer.sce.beans.CourseDetails;
 import com.pfizer.sce.beans.EventCourseProductMapping;
 import com.pfizer.sce.beans.EventsCreated;
+import com.pfizer.sce.beans.SCEException;
 import com.pfizer.sce.db.SCEManagerImpl;
 import com.pfizer.sce.helper.EvaluationControllerHelper;
 import com.pfizer.sce.helper.LegalConsentHelper;
@@ -40,23 +41,41 @@ public class EventCourseMapping extends ActionSupport implements
 
 		HttpServletRequest req = getRequest();
 		HttpSession session = req.getSession();
-
-		
-		String[] eventNameFetch = sceManager.getEventName();
+		/*String[] eventNameFetch = sceManager.getEventName();
 		req.setAttribute("eventNameFetch", eventNameFetch);
-
+*///commented by muzees for PBG and UpJOHN
 		return new String("success");
 	}
+	//added by MUZEES for PBG and UpJOHN for fetching events based on business unit 2019
+	//start
+	public String gotoEventMappingtoFetchEvents() {
 
+		HttpServletRequest req = getRequest();
+		HttpSession session = req.getSession();
+		/* String whichBusinessUnit =(String) req.getAttribute("bu_id");
+		*///String whichBUIndex = (String) req.getAttribute("bu_index");
+		try{
+		String whichBUIndex=req.getParameter("bu_index");
+        String whichBusinessUnit = req.getParameter("bu_id");
+		String[] eventNameFetch = sceManager.getEventNameByBU(whichBusinessUnit);
+		req.setAttribute("eventNameFetch", eventNameFetch);
+		req.setAttribute("alreadySelectedBUIndex",whichBUIndex);
+		req.setAttribute("alreadySelectedBU",whichBusinessUnit);
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+		return new String("success");
+	}
+	//end of muzees
 	public String gotoRetrieveEventMapping() {
 
 		HttpServletRequest req = getRequest();
 		HttpSession session = req.getSession();
 		
-		this.gotoEventMapping();
+		
 
 		try {
-
+			gotoEventMappingtoFetchEvents();//added by muzees for PBG and UpJOHN
 			String result = legalConsentHelp.checkLegalConsent(req, session);
 			// System.out.println("*****result*****:" + result);
 
@@ -84,8 +103,14 @@ public class EventCourseMapping extends ActionSupport implements
 			Integer evalTemplateId = new Integer(
 					Integer.parseInt(selEvalTemplate));
 			String selectedEventName = selEvalTemplateName;
-			
-
+			/*//start of muzees
+			String whichBUIndex=req.getParameter("bu_index");
+	        String whichBusinessUnit = req.getParameter("bu_id");
+			String[] eventNameFetch = sceManager.getEventNameByBU(whichBusinessUnit);
+			req.setAttribute("eventNameFetch", eventNameFetch);
+			req.setAttribute("alreadySelectedBUIndex",whichBUIndex);
+			req.setAttribute("alreadySelectedBU",whichBusinessUnit);//end of muzees
+*/
 			if (!selEventOption.equalsIgnoreCase("0")) {
 
 				
@@ -95,10 +120,12 @@ public class EventCourseMapping extends ActionSupport implements
 				selEventOption = req.getParameter("selectedEventIndexName");
 				req.setAttribute("courseProduct", courseProduct);
 				req.setAttribute("selEventOption", selEventOption);
+				req.setAttribute("selectedEventName", selectedEventName);
 
 			
-
-				String[] eventProductFetch = sceManager.getProductForEvent();
+				String whichBusinessUnit = req.getParameter("bu_id");
+				//String[] eventProductFetch = sceManager.getProductForEvent(); commented by MUZEES for PBG and UpJOHN
+				String[] eventProductFetch = sceManager.getProductForEventbyBU(whichBusinessUnit);//added by MUZEES for PBG and UpJOHN to fecth product based on business unit
 				req.setAttribute("eventProductFetch", eventProductFetch);
 
 			
@@ -107,6 +134,7 @@ public class EventCourseMapping extends ActionSupport implements
 				selEventOption = req.getParameter("selectedEventIndexName");
 				req.setAttribute("courseProduct", null);
 				req.setAttribute("selEventOption", selEventOption);
+				req.setAttribute("selectedEventName", selectedEventName);
 			}
 
 		} catch (Exception e) {
@@ -169,8 +197,8 @@ public class EventCourseMapping extends ActionSupport implements
 
 		HttpServletRequest req = getRequest();
 		HttpSession session = req.getSession();
-
-			this.gotoRetrieveEventMapping();
+		//gotoEventMappingtoFetchEvents();
+		gotoRetrieveEventMapping();
 
 		try {
 
@@ -187,7 +215,7 @@ public class EventCourseMapping extends ActionSupport implements
 				// System.out.println("**********Forwarding to exception");
 				return new String("failure");
 			}
-
+			
 			String mapId = req.getParameter("delMapId");
 			Integer mappingID = new Integer(Integer.parseInt(mapId));
 			String selEventName = req.getParameter("hdnSelectedTemplate");
@@ -273,7 +301,8 @@ public class EventCourseMapping extends ActionSupport implements
 
 			}
 			gotoRetrieveEventMapping();
-
+			String selEvalTemplate = req.getParameter("selEvalTemplate");
+			req.setAttribute("selEvalTemplate", selEvalTemplate);
 			req.setAttribute("hdnSelectedCourseName", doEmpty);
 			req.setAttribute("hdnSelectedProductName", doEmpty);
 

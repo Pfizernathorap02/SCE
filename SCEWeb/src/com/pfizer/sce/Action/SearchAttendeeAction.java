@@ -4,26 +4,19 @@ import java.net.URL;
 import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.ModelDriven;
-import com.pfizer.sce.ActionForm.EvaluateForm;
 import com.pfizer.sce.ActionForm.SearchForAttendeeForm;
 import com.pfizer.sce.beans.Attendee;
-import com.pfizer.sce.beans.EvaluationFormScore;
 import com.pfizer.sce.beans.LegalConsentTemplate;
-import com.pfizer.sce.beans.LegalQuestion;
-import com.pfizer.sce.beans.LegalQuestionDetail;
-import com.pfizer.sce.beans.SCE;
-import com.pfizer.sce.beans.SCEDetail;
-import com.pfizer.sce.beans.SCEException;
 import com.pfizer.sce.beans.User;
 import com.pfizer.sce.beans.UserLegalConsent;
-import com.pfizer.sce.common.SCEConstants;
 import com.pfizer.sce.db.SCEControlImpl;
 import com.pfizer.sce.db.SCEManagerImpl;
 import com.pfizer.sce.helper.EvaluationControllerHelper;
@@ -35,10 +28,14 @@ import com.pfizer.sce.utils.SCEUtils;
  *         seachforAttendee.jsp
  * 
  */
+//@SuppressWarnings("serial")
 public class SearchAttendeeAction extends ActionSupport implements
-		ServletRequestAware, ModelDriven {
+		ServletRequestAware, ModelDriven<Object> {
 	
-	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String fEmplid;
 	private String lOrder;
 	private String fOrder;
@@ -128,45 +125,66 @@ public class SearchAttendeeAction extends ActionSupport implements
 
 		// log.debug("Entry in to  begin method...");
 		HttpServletRequest req = getServletRequest();
+		
 		// sceManager = new SCEManagerImpl();
-
+		
 		String ntid = "";
+		String domain="";
+		String emplid="";
 		try {
 			User user = (User) getSession().getAttribute("user");
 			// System.out.println(" User Object:" + user);
 			// log.debug(" User Object:" + user);
 			if (user == null) {
-				ntid = req.getHeader("IAMPFIZERUSERPFIZERNTLOGONNAME");
+				/*ntid = req.getHeader("IAMPFIZERUSERPFIZERNTLOGONNAME");
 				System.out
 						.println("Inside begin method.Getting ntid from IAM Header ntid:"
-								+ ntid);
+								+ ntid);*/
 				// log.debug("Inside begin method.Getting ntid from IAM Header ntid:"+
 				// ntid);
-				String emplid = req.getHeader("IAMPFIZERUSERWORKFORCEID");
+				/*String emplid = req.getHeader("IAMPFIZERUSERWORKFORCEID");
 
 				System.out
 						.println("begin method.Getting emplid from IAM Header emplid:"
-								+ emplid);
+								+ emplid);*/
 				// log.debug("begin method.Getting emplid from IAM Header emplid:"
 				// + emplid);
 
-				String domain = req
+				/*String domain = req
 						.getHeader("IAMPFIZERUSERPFIZERNTDOMAINNAME");
 
 				System.out
 						.println("begin method.Getting domain from IAM Header domain:"
-								+ domain);
+								+ domain);*/
 				// log.debug("begin method.Getting domain from IAM Header domain:"
 				// + domain);
+				//Oauth start
 				
+				
+				SCEControlImpl sceControl= new SCEControlImpl();
+				HttpServletResponse response= ServletActionContext.getResponse();
+
+				
+				
+				String userDetails= sceControl.getAuthenticatedUserID(req, response);
+				System.out.println(userDetails);
+				String[] userDetailsArray = userDetails.split(",");
+				
+				if (userDetails!=null && userDetails.length()>0){
+					userDetailsArray = userDetails.split(",");
+					ntid = userDetailsArray[0];
+					domain = userDetailsArray[1];
+					emplid = userDetailsArray[2];
+				}
+				//Oauth end
 				
 				/* NT id hard coded for testing purpose**/
 				
 				if (emplid == null || ntid == null || domain == null) {
 
-					emplid = "148324";
+					/*emplid = "148324";
 					ntid = "gadalp";
-					domain = "AMER";
+					domain = "AMER";*/
 				}
 				
 
@@ -311,20 +329,26 @@ public class SearchAttendeeAction extends ActionSupport implements
 			// log.debug("User in Evaluation Controller"+user);
 
 			String isVisible = "";
-			String salesPositionTypeCd = "";
+			
 			isVisible = user.getSceVisibility();
+			
+			//updated by muzees for PGB and UpJOHN segregation 2019
+			//start
+			String salesPositionTypeCd = "";
 			salesPositionTypeCd = user.getSalesPositionTypeCd();
+			String userGroup=user.getUserGroup();
+			String bussinessUnit=user.getBusinessUnit();
 			System.out.println("isVisible:"+isVisible);
 			System.out.println("salesPositionTypeCd:"+salesPositionTypeCd);
-
+			
 			Attendee[] attendees = sceManager.getAttendeesBySearchCriteria(
 					searchForAttendeeForm.getEventId(),
 					searchForAttendeeForm.getLastName(),
 					searchForAttendeeForm.getFirstName(),
 					searchForAttendeeForm.getEmplId(),
 					searchForAttendeeForm.getSalesPositionId(), isPassport,
-					isVisible, salesPositionTypeCd);
-
+					isVisible, salesPositionTypeCd,userGroup,bussinessUnit);
+			//end
 			req.setAttribute("attendees", attendees);
 		} catch (Exception e) {
 			req.setAttribute("errorMsg", "error.sce.unknown");
@@ -442,14 +466,15 @@ public class SearchAttendeeAction extends ActionSupport implements
 			String salesPositionTypeCd = "";
 			isVisible = user.getSceVisibility();
 			salesPositionTypeCd = user.getSalesPositionTypeCd();
-
+			String userGroup=user.getUserGroup();
+			String bussinessUnit=user.getBusinessUnit();
 			Attendee[] attendees = sceManager.getAttendeesBySearchCriteria(
 					searchForAttendeeForm.getEventId(),
 					searchForAttendeeForm.getLastName(),
 					searchForAttendeeForm.getFirstName(),
 					searchForAttendeeForm.getEmplId(),
 					searchForAttendeeForm.getSalesPositionId(), isPassport,
-					isVisible, salesPositionTypeCd);
+					isVisible, salesPositionTypeCd,userGroup,bussinessUnit);
 
 			req.setAttribute("attendees", attendees);
 

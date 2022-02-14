@@ -49,7 +49,16 @@ public class SCE
     
     private String formTitle;
     private String hlcCritical;
-    List sceDetailList = new ArrayList();        
+    private Date registrationDate;//2020 Q3:added by muzees for multiple evaluation
+    public Date getRegistrationDate() {
+		return registrationDate;
+	}
+
+	public void setRegistrationDate(Date registrationDate) {
+		this.registrationDate = registrationDate;
+	}
+
+	List sceDetailList = new ArrayList();        
     
     /* Author: Mayank Date:11-Oct-2011 SCE Enhancement 2011 */
     List legalQuestionList = new ArrayList();

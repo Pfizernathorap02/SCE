@@ -15,6 +15,8 @@ public class EventsCreated {
 private Integer evalDuration;
 private Integer numberOfEval;
 private String typeOfEval;
+private String businessUnit;
+
 
 private Integer numberOfLearners;
 
@@ -95,5 +97,15 @@ public void setNumberOfLearners(Integer numberOfLearners) {
 	public void setEventStatus(String eventStatus) {
 		this.eventStatus = eventStatus;
 	}
+
+	public String getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(String businessUnit) {
+		this.businessUnit = businessUnit;
+	}
+
+	
 
 }

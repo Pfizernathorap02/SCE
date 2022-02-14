@@ -1,5 +1,6 @@
 package com.pfizer.sce.db;
 
+import com.pfizer.sce.beans.BU;
 import com.pfizer.sce.beans.Question;
 import com.pfizer.sce.beans.SCEException;
 import com.pfizer.sce.beans.TemplateVersion;
@@ -41,6 +42,10 @@ public interface SCEManager {
 	java.lang.String[] getClassroomsByCourse(java.lang.String course);
 	//monika
     java.lang.String[] getEventName();
+    /* Start: AGARWN21: For retrieving employee id Bug fix release 2021*/
+    //Start of Nishtha
+    java.lang.String getempbyNTID1(java.lang.String emplid);
+    //End of Nishtha
     
     java.lang.String[] getCoursesForEvent(java.lang.String event) 
 			 throws com.pfizer.sce.beans.SCEException;
@@ -515,6 +520,17 @@ public interface SCEManager {
 	com.pfizer.sce.beans.CourseEvalTemplateMapping[] deleteSelLmsRecord(
 			java.lang.Integer delLmsId, java.lang.Integer templateId)
 			throws com.pfizer.sce.beans.SCEException;
-
-
+	//added by hussain
+	public String[] getRoles() throws SCEException;
+	void saveRoles() throws SCEException;
+	//added by muzees for PBG and UpJOHN
+	public String[] getAllBUList() throws SCEException;
+		public String[] getBUList() throws SCEException;
+		public String[] getSalesOrg() throws SCEException;
+		public int saveRoles(String roleCd, String roleDescription)throws SCEException;
+		public String[] getEventNameByBU(String businessUnit) throws SCEException;
+		public String[] getProductForEventbyBU(String businessUnit) throws SCEException;
+		public int deleteSalesOrg(String salesOrganiation) throws SCEException;
+		public int saveBUMapping(String businessUnit, String salesOrganisation)
+				throws SCEException;//end of MUZEES
 }

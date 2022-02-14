@@ -3,12 +3,16 @@ package com.pfizer.sce.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+//import org.apache.log4j.Logger;
 
 
 public class LoggerHelper 
 {     
-    private static transient Logger sceLogger = Logger.getLogger(LoggerHelper.class.getName());  
+   // private static transient Logger sceLogger = Logger.getLogger(LoggerHelper.class.getName());  
+	 private static transient Logger sceLogger = LogManager.getLogger(LoggerHelper.class.getName()); 
       
     public static void logSystemError(String msg)
     {

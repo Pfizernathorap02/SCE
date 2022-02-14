@@ -11,7 +11,11 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+
+
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -72,7 +76,7 @@ public class EvaluationTemplateAction extends ActionSupport implements
 	}
 
 	// Logger to create logs
-	static Logger  log = Logger.getLogger(EvaluationTemplateAction.class);
+	static Logger  log = LogManager.getLogger(EvaluationTemplateAction.class);
 	 
 	public String getAutoCredit() {
 		return autoCredit;
@@ -692,10 +696,10 @@ public class EvaluationTemplateAction extends ActionSupport implements
            EvaluationControllerHelper.setBookMarkURL(session,request,forwardToHomePage);
            return new String("legalConsent");
        }else if(result != null && result.equals("exception")){
-           // System.out.println("**********Forwarding to exception");
+           System.out.println("**********Forwarding to exception");
            return new String("failure");
        }
-       // System.out.println("pageName:"+pageName);
+      System.out.println("pageName:"+pageName);
        if(pageName == null || ((!pageName.equals("create")&& (!pageName.equals("edit"))))){
            // System.out.println("This is Bookmark request");   
            URL url = new URL(request.getRequestURL().toString());
@@ -703,7 +707,7 @@ public class EvaluationTemplateAction extends ActionSupport implements
            pageURL = "http://"+domain+"/SCEWeb/gotoTemplateAdmin.action";
            // System.out.println("pageURL:"+pageURL);
            URL forwardURL = new URL(pageURL);
-           // System.out.println("forwardURL::::::"+forwardURL);
+           System.out.println("forwardURL::::::"+forwardURL);
           // return new Forward(forwardURL);
            
        }       
@@ -729,6 +733,10 @@ public class EvaluationTemplateAction extends ActionSupport implements
        
        TemplateVersion templateVersion = (TemplateVersion)request.getAttribute("templateVersion");
        
+       System.out.println("Template Version is:"+templateVersion);
+       
+       System.out.println("Page Name is:"+pageName);
+       
        if(pageName != null && pageName.equals("create"))
        {
            if(sceManager.getNumOfFormTitles(formTitle.trim().toLowerCase()).intValue() != 0 )
@@ -744,15 +752,20 @@ public class EvaluationTemplateAction extends ActionSupport implements
        }
        else if(pageName != null && pageName.equals("edit"))
        {
+    	   System.out.println("Inside edit");
            
            Integer countOfLmsMappingIds = new Integer(0);
            
            countOfLmsMappingIds = sceManager.findLMSCourseMappingId(templateVersion.getTemplateId());
            
+           System.out.println("countOfLmsMappingIds"+countOfLmsMappingIds);
+           
            if(countOfLmsMappingIds.intValue() > 0)
            {
                isAlreadyMapped = true; // System.out.println("mapped");
            }   
+           
+           System.out.println("isAlreadyMapped:"+isAlreadyMapped);
            
            TemplateVersion existingTemplateVersion = (TemplateVersion) session.getAttribute("templateVersion");
 

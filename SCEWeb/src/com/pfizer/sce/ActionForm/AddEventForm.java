@@ -19,6 +19,9 @@ public class AddEventForm {
 	// added for getStatuts Map
 	private HashMap eventStatuses;
 
+	//added by muzees for PBG and UpJOHN
+	private String businessUnit;
+	
 	public Integer getEvalDuration() {
 		return evalDuration;
 	}
@@ -127,6 +130,14 @@ public class AddEventForm {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public String getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(String businessUnit) {
+		this.businessUnit = businessUnit;
 	}
 
 }

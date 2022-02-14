@@ -129,6 +129,7 @@
 						<tr>
 							<th>Event Name</th>
 							<th>Event Description</th>
+							<th>Business Unit </th>
 							<th>Event Start Date</th>
 							<th>Event End Date</th>
 							<th>Event Status</th>
@@ -149,6 +150,8 @@
 							<td><%=SCEUtils.ifNull(event.getEventName(),
 								"&nbsp;")%></td>
 							<td><%=SCEUtils.ifNull(event.getEventDescription(),
+								"&nbsp;")%></td>
+							<td><%=SCEUtils.ifNull(event.getBusinessUnit(),
 								"&nbsp;")%></td>
 							<td><%=SCEUtils.ifDateNull(event.getEventStartDate(),
 								"&nbsp;")%></td>

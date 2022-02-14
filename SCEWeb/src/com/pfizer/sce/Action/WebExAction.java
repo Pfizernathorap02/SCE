@@ -16,8 +16,14 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+
+
+
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+//import org.apache.log4j.Logger;
+//import org.apache.log4j.PropertyConfigurator;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -78,7 +84,10 @@ public class WebExAction extends ActionSupport implements ServletRequestAware,
 
 	HttpServletRequest request;
 	// static Logger log =
-	static Logger log = Logger.getLogger(WebExAction.class.getName());
+	//static Logger log = Logger.getLogger(WebExAction.class.getName());
+	
+	/** The log. added for struts Migration from 2.3 to 2.5.17 : by Dhananjay */
+	static Logger log=LogManager.getLogger(WebExAction.class.getName());
 
 	public WebExFormData getWebExFormData() {
 		return webExFormData;

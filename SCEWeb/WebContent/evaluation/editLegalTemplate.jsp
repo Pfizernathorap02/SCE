@@ -66,11 +66,11 @@ function logoutYesNo(){
 } 
 
       
-    
+    /* shindo modified url for edge  */
  function openPreviewWindow() {
 	    frm=document.forms[0];
 	    var content= frm.newContent.value;
-	    window.open('evaluation/legalTemplatePreview.jsp?cont='+content,'preview_window','status=yes,scrollbars=yes,height=500,width=750,resizable=yes');                    
+	    window.open('evaluation/legalTemplatePreview.jsp?cont='+encodeURIComponent(content),'preview_window','status=yes,scrollbars=yes,height=500,width=750,resizable=yes');                    
 	}
     
 

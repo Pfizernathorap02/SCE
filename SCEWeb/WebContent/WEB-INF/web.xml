@@ -6,13 +6,31 @@
 	<display-name>SALESCALLEVALUATION</display-name>
 	<filter>
 		<filter-name>struts2</filter-name>
-		<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+		<!-- <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class> -->
+		
+            <filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>
+		
 	</filter>
 
 	<filter-mapping>
 		<filter-name>struts2</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
+	
+	
+	
+	
+	<!-- added for oauth  -->
+    <context-param>
+		<param-name>properties</param-name>
+		<!--  <param-value>/modules/properties/main/propertyfiles/pfizer.properties</param-value>  -->
+		<!--<param-value>/modules/properties/main/propertyfiles/pfizer.properties,/modules/properties/main/propertyfiles/DatabasePassword.properties,/modules/properties/main/propertyfiles/BOReport.properties</param-value>-->
+		<param-value>C:/Users/thorap02/OneDrive - Pfizer/Applications/SCE-TRT/SCE-TRT/sce properties files for oauth/sce.properties</param-value> 
+		<!-- <param-value>/app/jbshome/jboss61domains/sce-stg/modules/properties/main/propertyfiles/sce.properties</param-value> -->
+		<!-- <param-value>/app/3rdparty/sce/properties/sce.properties</param-value> -->
+		<!-- <param-value>C:/jboss-eap-6.1.0/jboss-eap-6.1/pfizer.properties,C:/jboss-eap-6.1.0/jboss-eap-6.1/DatabasePassword.properties</param-value> -->
+		<!-- END of code change for JIRA TICKET# STCH-140 in 5.4.0 release -->
+	</context-param>
 	
 		     <!--Added by Neha 19/11/2011-->  
     <servlet>
@@ -32,6 +50,36 @@
         <servlet-class>com.pfizer.sce.servlets.ShowBlankFormPDFServlet</servlet-class>
     </servlet>
     
+	<servlet>
+        <servlet-name>inviteAuth</servlet-name>
+        <!-- <jsp-file>/inviteAuth.jsp</jsp-file>  -->
+        <servlet-class>com.pfizer.sce.servlets.InviteServlet</servlet-class> 
+    </servlet>
+    <!-- <servlet>
+        <servlet-name>evaluateTR</servlet-name>
+        <jsp-file>/inviteAuth.jsp</jsp-file>  
+    </servlet> -->
+    
+    <servlet>
+		<servlet-name>SCEProperties</servlet-name>
+		<!-- <display-name>PfizerSiteController</display-name> -->
+		<servlet-class>com.pfizer.sce.servlets.SCEProperties</servlet-class>
+		<load-on-startup>1</load-on-startup>
+		<security-role-ref>
+			<role-name>all</role-name>
+			<role-link>all</role-link>
+		</security-role-ref>
+	</servlet>
+    <servlet-mapping>
+		<servlet-name>SCEProperties</servlet-name>
+		<url-pattern>/SCEWeb/</url-pattern>
+	</servlet-mapping>
+	
+	  <servlet-mapping>
+		<servlet-name>inviteAuth</servlet-name>
+		<url-pattern>/acceptRejectInvite</url-pattern>
+	</servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>showPdf</servlet-name>
         <url-pattern>/showPdf</url-pattern>
@@ -49,7 +97,7 @@
 	</error-page>
 
     <welcome-file-list>
-        <welcome-file>/evaluation/redirect.jsp</welcome-file>     
+        <welcome-file>/evaluation/redirect.jsp</welcome-file>
     </welcome-file-list>
     
     <session-config>

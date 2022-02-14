@@ -268,9 +268,6 @@
 
 		<h3>Admin: Field Faculty Maintenance</h3>
 		<!-- end #content -->
-		
-		
-
 		<div id="main_content">
 			<div class="add_user">
 				<!-- <netui:anchor action="gotoAddGT">Add Guest Trainer</netui:anchor> -->
@@ -281,16 +278,6 @@
 				<pre>Total number of GTs <%=totalGts%></pre>
 				<pre>Total matching criteria <%=totalFilteredGts%></pre>
 			</div>
-
-			<%
-				if (message != null) {
-			%>
-			<font color="Red">
-			<p><%=message%></p>
-			</font>
-			<%
-				}
-			%>
 			<s:form action="gotoUploadGTList" enctype="multipart/form-data">
 				<input type="hidden" value="" name="hdnLastNameFilter"
 					id="hdnLastNameFilter"> <input type="hidden" value=""
@@ -396,11 +383,11 @@
 						<th style="overflow: hidden">Rep NTID</th>
 						<th style="overflow: hidden" width="160">Rep Email</th>
 						<th style="overflow: hidden" width="30">Rep Role</th>
-						<th style="overflow: hidden" width="20">Rep Location</th>
+						<th style="overflow: hidden" width="50">Rep Location</th>
 						<th style="overflow: hidden">Associated Product</th>
 						<th style="overflow: hidden">Rep Manager</th>
-						<th style="overflow: hidden" width="160">Rep Manager Email</th>
-						<th style="overflow: hidden" width="30">Rep Manager Role</th>
+						<th style="overflow: hidden" width="170">Rep Manager Email</th>
+						<th style="overflow: hidden" width="40">Rep Manager Role</th>
 						<th style="overflow: hidden" align="center">Select GT for
 							evaluations <input style="float: left; width: 90%"
 							type="checkbox" name="selectAllGTChkBox" id="iselectAllGTChkBox"
@@ -513,7 +500,17 @@
 				}
 			%>
 
-
+			<div>
+			<%
+				if (message != null) {
+			%>
+			<font color="Red">
+			<p><%=message%></p>
+			</font>
+			<%
+				}
+			%>
+			</div>
 			<div class="clear"></div>
 		</div>
 	</div>

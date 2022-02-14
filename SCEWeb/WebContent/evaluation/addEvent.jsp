@@ -7,6 +7,7 @@
 <%@ page import="java.text.SimpleDateFormat"%>
 <%@ page import="com.pfizer.sce.beans.Util"%>
 <%@ page import="java.util.Date"%>
+<%@page import="com.pfizer.sce.db.SCEManagerImpl"%>
 <%@include file="IAM_User_Auth.jsp"%>
 
 <%@ taglib prefix="s" uri="/struts-tags"%>
@@ -16,7 +17,10 @@
 	 String eventStartDate = "";
 	 String eventEndDate = "";
 	 String message= (String)request.getAttribute("message");
-	   
+	 
+		String[] buList = null;
+		SCEManagerImpl sceManager = new SCEManagerImpl();	
+	
 	%>
 
 <style type="text/css">
@@ -57,10 +61,14 @@ url(<%=request.getContextPath()%>/evaluation/resources/jscalendar-1.0/calendar-w
 	src="<%=request.getContextPath()%>/evaluation/resources/js/validate.js"></script>
 
 <script language="javascript">
+function fetchBUList(){
+	<%buList = sceManager.getBUList();%>
+	}
     function validateUserForm() {
   	 var today = new Date();
   	 var eventName = document.getElementById('eventName').value;
  	 var evalDuration=document.getElementById('evalDuration').value
+ 	 var businessUnit = document.getElementById('businessUnit').value;//added by muzees for PBG and UpJOHN
  		var numberOfEval=document.getElementById('numberOfEval').value
 		 var numberOfLearners=document.getElementById('numberOfLearners').value
  		 var onlynumber= /^[0-9]+$/;
@@ -77,6 +85,10 @@ url(<%=request.getContextPath()%>/evaluation/resources/jscalendar-1.0/calendar-w
      var useDate2 = new Date(arrDate2[2], arrDate2[0]-1, arrDate2[1]);
      
       var validformat=/^\d{2}\/\d{2}\/\d{4}$/ //Basic check for format validity
+    	  if (businessUnit == 0) {
+    	         alert('Please select Business Unit');
+    	         return false;
+    	     } 
         if (eventStartDate!=''){
         if (!validformat.test(eventStartDate)){
         alert("Invalid Date Format. Please correct and submit again.");
@@ -204,6 +216,24 @@ url(<%=request.getContextPath()%>/evaluation/resources/jscalendar-1.0/calendar-w
 				</div>
 
 				<table cellpadding="0" cellspacing="0" style="border: 0">
+				<tr>
+						 <td width="15%" valign="top" style="border: 0"><label>Business Unit<font color="Red">*</font></label></td> 
+						 <td style="border: 0"><select id="businessUnit" name="addEventForm.businessUnit">
+							<option value="0">---Select---</option>
+
+							<%
+								if (buList != null) {
+									for (int i = 0; i < buList.length; i++) {
+							%>
+
+							<option value="<%=buList[i]%>"><%=buList[i]%></option>
+							<%
+								}
+								}
+							%>
+						</select>
+					</td>
+					</tr>
 					<tr>
 						<td width="15%" valign="top" style="border: 0">Event name<font
 							id="expDtMandatory" color="Red">*</font></td>

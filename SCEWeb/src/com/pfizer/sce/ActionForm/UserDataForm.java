@@ -8,13 +8,56 @@ public class UserDataForm {
 	private String message;
 	private Integer id;
 	private String email;
-	private String status="Active";
+	//private String status="Active";//commented by muzees
+	private String status;
 	private String filterStatus;
 	
 	private String ntdomain;
 	private String ntid;
 	private String firstName;
 	private String lastName;
+	private String isAccessRequest;
+	//added by muzees for PBG and UpJOHN
+	private String businessUnit;
+	private int sel_bu_id;
+	private String selUserStatus;
+	private String selUserType;//for update user
+	//end
+
+	
+	public String getSelUserStatus() {
+		return selUserStatus;
+	}
+
+	public void setSelUserStatus(String selUserStatus) {
+		this.selUserStatus = selUserStatus;
+	}
+
+	public String getSelUserType() {
+		return selUserType;
+	}
+
+	public void setSelUserType(String selUserType) {
+		this.selUserType = selUserType;
+	}
+
+	public String getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(String businessUnit) {
+		this.businessUnit = businessUnit;
+	}
+
+	
+
+	public int getSel_bu_id() {
+		return sel_bu_id;
+	}
+
+	public void setSel_bu_id(int sel_bu_id) {
+		this.sel_bu_id = sel_bu_id;
+	}
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
@@ -120,5 +163,13 @@ public class UserDataForm {
 		// }
 
 		return this.expirationDate;
+	}
+
+	public String getIsAccessRequest() {
+		return isAccessRequest;
+	}
+
+	public void setIsAccessRequest(String isAccessRequest) {
+		this.isAccessRequest = isAccessRequest;
 	}
 }

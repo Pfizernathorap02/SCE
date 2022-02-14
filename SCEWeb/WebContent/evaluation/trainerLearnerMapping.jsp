@@ -835,8 +835,8 @@ var indexE = document.getElementById("eventValue").selectedIndex;
 </head>
                          
             <body  onload="onScreenLoad()">
-          
-                <s:form action="trainerLearnerMapping" tagId="TrainerLearnerMapping">
+          <!-- shindo height:100 -->
+                <s:form action="trainerLearnerMapping" tagId="TrainerLearnerMapping" style="height: 100%;">
                 <input type="hidden" name="pageName" id="pageName" value="retrieveMappingDetails"/>
                 <input type="hidden" id="hdnSelectedTempId" name="hdnSelectedTemp" value=""/>
                 <input type="hidden" id="hdn1" name="hdn1" value=""/>
