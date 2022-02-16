@@ -2209,7 +2209,7 @@ function setCallSectionValues()
 										<h4>Conflict Overwrite:</h4>
 										<label></label> In case of a conflict between two or more
 										business rules, the overall evaluated score shall be <select
-											name="conflictOverallScore" style="width: 90px"
+											name="conflictOverallScore" id="conflictOverallScore" style="width: 90px"
 											onChange="setValue(this)">
 											<%
 												if (scoringSystemValues != null) {

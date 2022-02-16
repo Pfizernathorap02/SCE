@@ -25,9 +25,9 @@
 		<param-name>properties</param-name>
 		<!--  <param-value>/modules/properties/main/propertyfiles/pfizer.properties</param-value>  -->
 		<!--<param-value>/modules/properties/main/propertyfiles/pfizer.properties,/modules/properties/main/propertyfiles/DatabasePassword.properties,/modules/properties/main/propertyfiles/BOReport.properties</param-value>-->
-		<param-value>C:/Users/thorap02/OneDrive - Pfizer/Applications/SCE-TRT/SCE-TRT/sce properties files for oauth/sce.properties</param-value> 
+		<!--<param-value>C:/Users/thorap02/OneDrive - Pfizer/Applications/SCE-TRT/SCE-TRT/sce properties files for oauth/sce.properties</param-value> -->
 		<!-- <param-value>/app/jbshome/jboss61domains/sce-stg/modules/properties/main/propertyfiles/sce.properties</param-value> -->
-		<!-- <param-value>/app/3rdparty/sce/properties/sce.properties</param-value> -->
+		<param-value>/app/3rdparty/sce/properties/sce.properties</param-value> 
 		<!-- <param-value>C:/jboss-eap-6.1.0/jboss-eap-6.1/pfizer.properties,C:/jboss-eap-6.1.0/jboss-eap-6.1/DatabasePassword.properties</param-value> -->
 		<!-- END of code change for JIRA TICKET# STCH-140 in 5.4.0 release -->
 	</context-param>
